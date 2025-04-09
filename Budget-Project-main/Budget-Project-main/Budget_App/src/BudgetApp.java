@@ -3,7 +3,7 @@ import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
 
-//This section establishes connection with our MySQL database
+//This sections establishes connection with our MySQL database
 public class BudgetApp
 {
 	public static Connection getConnection() throws SQLException
