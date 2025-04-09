@@ -24,5 +24,5 @@
 > **Side Notes**<br>
 
 
-## 😃 Thank you for viewing my application ##
+## 😃 Thank you for viewing our application ##
 > I hope you enjoyed the little walk through of the Budget Management Application. If you have any questions and/or concerns let me know! Don't forget to leave a star⭐️.
