@@ -1,4 +1,4 @@
-//Importing packages for application
+//Importing packages for applications
 import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
