@@ -11,7 +11,8 @@
 
 ## 🛠️ Instructions For Team 
 > 1.) Download all files in repository
-  1.1.) Clone repository to your local system
+>
+> 1.1.) Clone repository to your local system
 
 > 2.) Set Up Database: 
  2.1) Download MySQL Workbench from: https://dev.mysql.com/downloads/workbench/
