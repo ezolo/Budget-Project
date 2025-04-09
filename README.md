@@ -52,7 +52,7 @@
 > &nbsp;&nbsp;&nbsp;2.6) Confirm that there is mock data in users table by running: select * from users; There should be 3 records<br>
 
 > **Side Notes**<br>
-> Remember to Pull new changes before making any new changes of your.
+> Remember to Pull new changes before making any new changes of your own.
 > We will work together to merge changes to main branch and solve any merge conflicts together.
 
 ## 😃 Thank you for viewing our application ##
