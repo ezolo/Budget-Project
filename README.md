@@ -31,18 +31,18 @@
 >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3.2e.) Follow the prompts to provide the necessary repository information (e.g., URI, local destination, branch).<br>
 >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3.2f.) Select Projects: Select the desired project(s) and click "Finish".<br>
 >4.) Working with Eclipse and GitHub Desktop <br>
->&nbsp;&nbsp;&nbsp; 4.1) Make Sure to grab JDBC Connector Jar for MySQL found here: https://dev.mysql.com/downloads/connector/j/
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  4.1a.) Click "Platform Independent" and download zip. To add jar to project, follow steps from class JDBC slides
->&nbsp;&nbsp;&nbsp; 4.2.) When you make some changes, make sure are on your branch that you created (should be title of project). If not switch to your branch. Do not push changes to "Main", we will be doing that together to avoid merge conflict. 
->&nbsp;&nbsp;&nbsp; 4.3.) Once you make some changes in your branch, you will commit changes
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.3a.) In Eclipse, right-click the project (where you made changes) and select "Team" > "Commit".
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.3b.) Add a commit message (what changes you made) and click "Commit".
->&nbsp;&nbsp;&nbsp; 4.4.) Once you commit changes to your branch, you will need to push your changes to repo.
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.4a.) In GitHub Desktop, click "Push" to push the changes to the remote repository.
->>&nbsp;&nbsp;&nbsp; 4.5.) Before making any new changes, it's recommended for you to Pull new changes from repo
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5a.) In GitHub Desktop, click "Fetch" to get the latest changes from the remote repository.
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5b.) Click "Pull" to merge the changes into your local repository.
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5c.) After pulling changes from GitHub Desktop, refresh your Eclipse project to see the updates. 
+>&nbsp;&nbsp;&nbsp; 4.1) Make Sure to grab JDBC Connector Jar for MySQL found here: https://dev.mysql.com/downloads/connector/j/<br>
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  4.1a.) Click "Platform Independent" and download zip. To add jar to project, follow steps from class JDBC slides<br>
+>&nbsp;&nbsp;&nbsp; 4.2.) When you make some changes, make sure are on your branch that you created (should be title of project). If not switch to your branch. Do not push changes to "Main", we will be doing that together to avoid merge conflict. <br>
+>&nbsp;&nbsp;&nbsp; 4.3.) Once you make some changes in your branch, you will commit changes<br>
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.3a.) In Eclipse, right-click the project (where you made changes) and select "Team" > "Commit".<br>
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.3b.) Add a commit message (what changes you made) and click "Commit".<br>
+>&nbsp;&nbsp;&nbsp; 4.4.) Once you commit changes to your branch, you will need to push your changes to repo.<br>
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.4a.) In GitHub Desktop, click "Push" to push the changes to the remote repository.<br>
+>>&nbsp;&nbsp;&nbsp; 4.5.) Before making any new changes, it's recommended for you to Pull new changes from repo<br>
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5a.) In GitHub Desktop, click "Fetch" to get the latest changes from the remote repository.<br>
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5b.) Click "Pull" to merge the changes into your local repository<br>
+>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5c.) After pulling changes from GitHub Desktop, refresh your Eclipse project to see the updates. <br>
 >5.) Setting up MySQL on your end<br>
 > &nbsp;&nbsp;&nbsp;2.1) Download MySQL Workbench from: https://dev.mysql.com/downloads/workbench/<br>
 > &nbsp;&nbsp;&nbsp;2.2) When download finished, enter MySQL Workbench and if there is no connections available, create new "local host" connection. There are many tutorials online how to do this, you can use this youtube video as example: https://www.youtube.com/watch?v=QOQ2XV2n-pk<br>
