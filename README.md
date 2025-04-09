@@ -19,7 +19,7 @@
 > &nbsp;&nbsp;&nbsp;2.3.) Once new connection created, open new query tabe: File --> New Query Tab and run the DDL and DML files. DDL creates schema and tables, DML creates mock data<br>
 > &nbsp;&nbsp;&nbsp;2.4.) Once you run queries, refresh budget_management database: right click on budget_management schema and select "refresh all". <br>
 > &nbsp;&nbsp;&nbsp;2.5) Confirm that 6 tables have been created<br>
-> &nbsp;&nbsp;&nbsp;2.6) Confirm that there is mock data in users table by running: select * from users;There should be 3 records<br>
+> &nbsp;&nbsp;&nbsp;2.6) Confirm that there is mock data in users table by running: select * from users; There should be 3 records<br>
 
 > **Side Notes**<br>
 
