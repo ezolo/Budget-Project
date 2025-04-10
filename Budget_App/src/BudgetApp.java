@@ -3,14 +3,14 @@ import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
 
-//This section establishes connection with our MySQL database
+//This section establishes connection with our MySQL databases!
 public class BudgetApp
 {
 	public static Connection getConnection() throws SQLException
 	{
 		String dbURL = "jdbc:mysql://localhost:3306/budget_management";
 		String username = "root";
-		String password = "password";
+		String password = "_Ali_9350303_";
 		Connection connection = DriverManager.getConnection(dbURL, username, password);
 		return connection;
 	}
