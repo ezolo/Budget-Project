@@ -66,3 +66,12 @@ CREATE TABLE IF NOT EXISTS challenges (
     completed BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- SUBSCRIPTIONS table
+CREATE TABLE subscriptions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    service_name VARCHAR(100),
+    cost DOUBLE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
