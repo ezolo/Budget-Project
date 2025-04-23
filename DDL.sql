@@ -13,13 +13,15 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- CATEGORIES table (now tied to individual users)
-CREATE TABLE IF NOT EXISTS categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    name VARCHAR(100),
-    UNIQUE (user_id, name),
+CREATE TABLE categories (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NULL,  -- NULL for predefined categories
+    name VARCHAR(255) NOT NULL,
+    is_predefined BOOLEAN DEFAULT FALSE,
+    image_path VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+ALTER TABLE categories ADD COLUMN is_custom_image BOOLEAN DEFAULT FALSE;
 
 -- ACCOUNTS table
 CREATE TABLE IF NOT EXISTS accounts (
@@ -64,5 +66,14 @@ CREATE TABLE IF NOT EXISTS challenges (
     user_id INT,
     challenge_name VARCHAR(100),
     completed BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- SUBSCRIPTIONS table
+CREATE TABLE subscriptions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    service_name VARCHAR(100),
+    cost DOUBLE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
