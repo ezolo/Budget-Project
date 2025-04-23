@@ -1,8 +1,11 @@
+package budgetapp.pages;
 import java.awt.GridLayout;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -10,6 +13,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+
+import budgetapp.auth.LoginApp;
+import budgetapp.components.LinePasswordField;
+import budgetapp.components.LineTextField;
+import budgetapp.connection.DatabaseConnection;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -17,7 +26,7 @@ import java.awt.event.*;
 
 
 	//This section will allow user to create a new account for application
-class RegisterPage extends JFrame 
+public class RegisterPage extends JFrame 
 {
     private LineTextField nameField, usernameField, emailField;
     private LinePasswordField passwordField;
@@ -132,31 +141,72 @@ class RegisterPage extends JFrame
         if (hasError) return;
 
         // Database operation
-        try (Connection conn = BudgetApp.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)");
-            
-            stmt.setString(1, nameField.getText().trim());
-            stmt.setString(2, usernameField.getText().trim());
-            stmt.setString(3, emailField.getText().trim());
-            stmt.setString(4, String.valueOf(passwordField.getPassword()));
-            
-            stmt.executeUpdate();
-            
-            JOptionPane.showMessageDialog(this, "Account created successfully!");
-            dispose();
-            new LoginApp();
-            
-        } catch (SQLException e) {
-            if (e.getMessage().contains("username")) {
-                usernameError.setText("Username already exists");
-            } else if (e.getMessage().contains("email")) {
-                emailError.setText("Email already registered");
-            } else {
-                JOptionPane.showMessageDialog(this, "Registration failed: " + e.getMessage());
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-        }
-    }
+        try (Connection conn = DatabaseConnection.getConnection()) {
+        	conn.setAutoCommit(false);
+        	
+        	
+        	 try {
+                 // 1. Create user account
+                 PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)");
+                 
+                 stmt.setString(1, nameField.getText().trim());
+                 stmt.setString(2, usernameField.getText().trim());
+                 stmt.setString(3, emailField.getText().trim());
+                 stmt.setString(4, String.valueOf(passwordField.getPassword()));
+                 
+                 stmt.executeUpdate();
+                 
+                 // 2. Get the new user's ID
+                 ResultSet rs = conn.prepareStatement("SELECT LAST_INSERT_ID()").executeQuery();
+                 rs.next();
+                 int userId = rs.getInt(1);
+                 
+                 // 3. Add default categories with their image paths
+                 Map<String, String> defaultCategories = new HashMap<>();
+                 defaultCategories.put("Housing", "house_image.jpg");
+                 defaultCategories.put("Utilities", "utilities_image.jpg");
+                 defaultCategories.put("Groceries", "groceries_image.jpg");
+                 defaultCategories.put("Transportation", "car_image.jpg");
+                 defaultCategories.put("Healthcare", "healthcare_image.jpg");
+                 defaultCategories.put("Loans", "loans_image.jpg");
+                 defaultCategories.put("Entertainment", "entertainment_image.jpg");
+                 defaultCategories.put("Travel", "travel_image.jpg");
+                 defaultCategories.put("Shopping", "shopping_image.jpg");
+                 defaultCategories.put("Subscriptions", "subscriptions_image.jpg");
+                 
+                 PreparedStatement categoryStmt = conn.prepareStatement(
+                     "INSERT INTO categories (user_id, name, is_predefined, image_path, is_custom_image) " +
+                     "VALUES (?, ?, TRUE, ?, FALSE)");
+                 
+                 for (Map.Entry<String, String> entry : defaultCategories.entrySet()) {
+                     categoryStmt.setInt(1, userId);
+                     categoryStmt.setString(2, entry.getKey());
+                     categoryStmt.setString(3, "/categories/" + entry.getValue());
+                     categoryStmt.addBatch();
+                 }
+                 
+                 categoryStmt.executeBatch();
+                 
+                 // Commit transaction
+                 conn.commit();
+                 
+                 JOptionPane.showMessageDialog(this, "Account created successfully with default categories!");
+                 dispose();
+                 new LoginApp();
+                 
+             } catch (SQLException e) {
+                 conn.rollback();
+                 if (e.getMessage().contains("username")) {
+                     usernameError.setText("Username already exists");
+                 } else if (e.getMessage().contains("email")) {
+                     emailError.setText("Email already registered");
+                 } else {
+                     JOptionPane.showMessageDialog(this, "Registration failed: " + e.getMessage());
+                 }
+             }
+         } catch (Exception e) {
+             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+         }
+     }
 }

@@ -1,21 +1,19 @@
-//Importing packages for application
-import java.sql.*;
+package budgetapp.pages;
 import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.table.DefaultTableModel;
+
+import budgetapp.auth.LoginApp;
+import budgetapp.connection.DatabaseConnection;
+import budgetapp.controller.MenuUtilities;
+
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-//This section establishes connection with our MySQL databases!
-public class BudgetApp
-{
-public static Connection getConnection() throws SQLException
-{
-String dbURL = "jdbc:mysql://localhost:3306/budget_management";
-String username = "root";
-String password = "password";
-Connection connection = DriverManager.getConnection(dbURL, username, password);
-return connection;
-}
-
+public class SubscriptionPage  {
+	  
 public static void showSubscriptionPanel(int userId) {
     JFrame frame = new JFrame("My Subscriptions");
     frame.setSize(600, 350);
@@ -51,7 +49,7 @@ public static void showSubscriptionPanel(int userId) {
     Runnable loadSubscriptions = () -> {
         model.setRowCount(0);
         double total = 0;
-        try (Connection conn = getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement("SELECT service_name, cost FROM subscriptions WHERE user_id = ?");
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
@@ -69,7 +67,7 @@ public static void showSubscriptionPanel(int userId) {
 
     // Add
     addBtn.addActionListener(e -> {
-        try (Connection conn = getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement("INSERT INTO subscriptions (user_id, service_name, cost) VALUES (?, ?, ?)");
             stmt.setInt(1, userId);
             stmt.setString(2, serviceField.getText());
@@ -88,7 +86,7 @@ public static void showSubscriptionPanel(int userId) {
         int row = table.getSelectedRow();
         if (row == -1) return;
         String service = model.getValueAt(row, 0).toString();
-        try (Connection conn = getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement("DELETE FROM subscriptions WHERE user_id=? AND service_name=?");
             stmt.setInt(1, userId);
             stmt.setString(2, service);
@@ -106,7 +104,7 @@ public static void showSubscriptionPanel(int userId) {
         String service = model.getValueAt(row, 0).toString();
         double newCost = Double.parseDouble(costField.getText());
 
-        try (Connection conn = getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement("UPDATE subscriptions SET cost=? WHERE user_id=? AND service_name=?");
             stmt.setDouble(1, newCost);
             stmt.setInt(2, userId);
@@ -120,8 +118,9 @@ public static void showSubscriptionPanel(int userId) {
 
     // Load table and total on startup
     loadSubscriptions.run();
-
+    frame.add(MenuUtilities.createMenuPanel(frame, userId), BorderLayout.SOUTH);
     frame.setVisible(true);
+    
 }
    }
- 
+

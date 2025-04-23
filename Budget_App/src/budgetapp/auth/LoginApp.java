@@ -1,3 +1,5 @@
+package budgetapp.auth;
+
 import java.awt.GridLayout;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,13 +10,19 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+
+import budgetapp.components.*;
+import budgetapp.connection.DatabaseConnection;
+import budgetapp.pages.RecordsPage;
+import budgetapp.pages.RegisterPage;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
 
 //This is where we set up the GUI & event handlers for Login page
-	class LoginApp extends JFrame 
+	public class LoginApp extends JFrame 
 	{
 		//private JTextField usernameField;
 		//private JPasswordField passwordField;
@@ -23,6 +31,10 @@ import java.awt.event.*;
 		private JLabel usernameError;
 	    private JLabel passwordError;
 	    public static int user_id;
+	    
+	    public static int getUserId() {
+	       return user_id;
+	    }
 
   public LoginApp() 
   {
@@ -140,7 +152,7 @@ import java.awt.event.*;
 
 	    if (hasError) return;
 	    
-	    try (Connection conn = BudgetApp.getConnection()) {
+	    try (Connection conn = DatabaseConnection.getConnection()) {
 	        // FIRST: Check if username exists
 	        PreparedStatement userStmt = conn.prepareStatement("SELECT * FROM users WHERE username=?");
 	        userStmt.setString(1, username);
@@ -162,10 +174,14 @@ import java.awt.event.*;
 	        }
 
 	        // Only if both checks pass
-	        user_id = userRs.getInt("id");
+	        int userId = userRs.getInt("id");
 	        JOptionPane.showMessageDialog(this, "Login successful!");
 	        dispose();
-	        new RecordsPage();
+	       // new RecordsPage(user_id);
+	        
+	        SwingUtilities.invokeLater(() -> {
+	        	 new RecordsPage(userId);  // Center on screen
+	        });
 	        
 	    } catch (Exception e) {
 	        e.printStackTrace();

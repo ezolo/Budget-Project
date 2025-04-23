@@ -1,4 +1,6 @@
 // Custom JTextField with underline
+package budgetapp.components;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
