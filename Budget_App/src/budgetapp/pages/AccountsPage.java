@@ -36,7 +36,7 @@ public class AccountsPage extends BaseFrame {
         contentPanel.add(titleBarPanel, BorderLayout.NORTH);
 
         // Accounts panel
-      JPanel accountsPanel = new JPanel();
+        JPanel accountsPanel = new JPanel();
         accountsPanel.setLayout(new BoxLayout(accountsPanel, BoxLayout.Y_AXIS));
         accountsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         accountsPanel.setBackground(Color.WHITE);
@@ -55,21 +55,42 @@ public class AccountsPage extends BaseFrame {
             JOptionPane.showMessageDialog(this, "Error loading accounts: " + e.getMessage());
         }
 
-    // Add scroll pane
+        // Add scroll pane
         JScrollPane scrollPane = new JScrollPane(accountsPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         contentPanel.add(scrollPane, BorderLayout.CENTER);
 
-       // Footer
+        // Footer
         JPanel footerPanel = new JPanel();
         footerPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         footerPanel.setBackground(Color.LIGHT_GRAY);
+
+        // Create buttons
         JButton addButton = createAddButton();
+        styleButton(addButton, new Color(0, 150, 0)); // Green for Add Account
+
+        JButton editButton = createEditButton();
+        styleButton(editButton, new Color(70, 130, 180)); // Blue for Edit
+
+        JButton deleteButton = createDeleteButton("AccountName");
+        styleButton(deleteButton, new Color(255, 69, 58)); // Red for Delete
+
+        // Add buttons to footer
         footerPanel.add(addButton);
+        footerPanel.add(editButton);
+        footerPanel.add(deleteButton);
         contentPanel.add(footerPanel, BorderLayout.SOUTH);
     }
+    private void styleButton(JButton button, Color backgroundColor) {
+        button.setFont(new Font("SansSerif", Font.BOLD, 14));
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 25, 8, 25));
+        button.setPreferredSize(new Dimension(150, 40)); // Set uniform size
+    }
     private JButton createAddButton() {
-        JButton button = new JButton("+ Add New Account");
+        JButton button = new JButton("+ Add Account");
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setFont(new Font("SansSerif", Font.BOLD, 14));
         button.setBackground(new Color(70, 130, 180));
@@ -93,7 +114,7 @@ public class AccountsPage extends BaseFrame {
     // Edit button
     JButton editButton = new JButton("Edit");
 
-        editButton.setFont(new Font("SansSerif", Font.BOLD, 12));
+        editButton.setFont(new Font("SansSerif", Font.BOLD, 14));
         editButton.setBackground(new Color(70, 130, 180));
         editButton.setForeground(Color.WHITE);
         editButton.setFocusPainted(false);
@@ -107,6 +128,29 @@ public class AccountsPage extends BaseFrame {
         }).setVisible(true);
     });
         return editButton;
+    }
+    private JButton createDeleteButton(String accountName) {
+        JButton deleteButton = new JButton("Delete");
+        deleteButton.setFont(new Font("SansSerif", Font.BOLD, 14));
+        deleteButton.setBackground(new Color(255, 69, 58)); // Red color
+        deleteButton.setForeground(Color.WHITE);
+        deleteButton.setFocusPainted(false);
+        deleteButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
+
+        deleteButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Are you sure you want to delete the account \"" + accountName + "\"?",
+                    "Confirm Deletion",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                deleteAccountFromDatabase(accountName);
+                dispose();
+                new AccountsPage(userId); // Refresh the accounts page
+            }
+        });
+
+        return deleteButton;
     }
     private JPanel createAccountCard(String accountName,String balance) {
         JPanel card = new JPanel(new BorderLayout());
@@ -128,13 +172,24 @@ public class AccountsPage extends BaseFrame {
         balanceLabel.setForeground(new Color(80, 80, 80));
         detailsPanel.add(nameLabel);
         detailsPanel.add(balanceLabel);
-
         card.add(detailsPanel, BorderLayout.CENTER);
-        JButton addButton = createEditButton();
-        card.add(addButton, BorderLayout.EAST);
+
+  /*      // Buttons panel
+        JPanel buttonsPanel = new JPanel();
+        buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
+        buttonsPanel.setBackground(new Color(242, 243, 247));
+
+        // Edit button
+        JButton editButton = createEditButton();
+        buttonsPanel.add(editButton);
+
+        // Delete button
+        JButton deleteButton = createDeleteButton(accountName);
+        buttonsPanel.add(deleteButton);
+
+        card.add(buttonsPanel, BorderLayout.EAST);
+        */
         return card;
-
-
     }
 
     private List<String> loadAccountsList(Connection conn, int userId) throws SQLException {
@@ -151,7 +206,19 @@ public class AccountsPage extends BaseFrame {
         }
         return accounts;
     }
-
+    private void deleteAccountFromDatabase(String accountName) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "DELETE FROM accounts WHERE user_id = ? AND name = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                stmt.setString(2, accountName);
+                stmt.executeUpdate();
+            }
+            JOptionPane.showMessageDialog(this, "Account deleted successfully!");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error deleting account: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
     public static void showAccountPanel(int userId) {
         new AccountsPage(userId);
     }
