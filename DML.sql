@@ -5,6 +5,13 @@ INSERT INTO users (name, username, email, password) VALUES
 ('John Smith', 'jSmith', 'john@example.com', 'password123'),
 ('Jane Smith', 'jSmith1', 'jane@example.com', 'password321');
 
+--accounts mock data
+INSERT INTO accounts (id, user_id, name, balance) VALUES
+('1', '1', 'savings', '100'),
+('2', '1', 'checking', '200'),
+('3', '2', 'savings', '100'),
+('4', '2', 'checking', '100');
+
 --categories mock data
 INSERT INTO categories (user_id, name, is_predefined, image_path, is_custom_image)
 VALUES 
