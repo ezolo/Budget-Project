@@ -86,12 +86,12 @@ public class RecordsPage extends BaseFrame {
 				ResultSet rs = stmt.executeQuery();
 				while (rs.next()) {
 					int id = rs.getInt("id");
-					String date = rs.getString("date");
-					String account = rs.getString("account");
+					String date = rs.getString("expense_date");
+					String account = rs.getString("account_id");
 					String amount = rs.getString("amount");
-					String type = rs.getString("type");
-					String category = rs.getString("category");
-					transactionsPanel.add(createTransactionPanel(id, date, account, amount, type, category));
+					//String type = rs.getString("type");
+					String category = rs.getString("category_id");
+					transactionsPanel.add(createTransactionPanel(id, date, account, amount, category));
 				}
 			}
 		} catch (SQLException e) {
@@ -101,12 +101,12 @@ public class RecordsPage extends BaseFrame {
 		transactionsPanel.repaint();
 	}
 
-	private JPanel createTransactionPanel(int id, String date, String account, String amount, String type, String category) {
+	private JPanel createTransactionPanel(int id, String date, String account, String amount, String category) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.setBorder(new EmptyBorder(5, 0, 5, 0));
 
-		JLabel detailsLabel = new JLabel(date + " | " + account + " | " + category + " | " + type + " | $" + amount);
+		JLabel detailsLabel = new JLabel(date + " | " + account + " | " + category + " | $" + amount);
 		detailsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
 		panel.add(detailsLabel, BorderLayout.CENTER);
 
@@ -124,7 +124,7 @@ public class RecordsPage extends BaseFrame {
 		int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this record?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
 		if (confirm == JOptionPane.YES_OPTION) {
 			try (Connection conn = DatabaseConnection.getConnection()) {
-				String sql = "DELETE FROM records WHERE id = ?";
+				String sql = "DELETE FROM expenses WHERE id = ?"; // Corrected table name
 				try (PreparedStatement stmt = conn.prepareStatement(sql)) {
 					stmt.setInt(1, id);
 					stmt.executeUpdate();
