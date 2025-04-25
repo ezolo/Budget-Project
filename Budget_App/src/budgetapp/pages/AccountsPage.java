@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AccountsPage extends BaseFrame {
     public AccountsPage(int userId) {
@@ -72,7 +74,7 @@ public class AccountsPage extends BaseFrame {
         JButton editButton = createEditButton();
         styleButton(editButton, new Color(70, 130, 180)); // Blue for Edit
 
-        JButton deleteButton = createDeleteButton("AccountName");
+        JButton deleteButton = createDeleteButton();
         styleButton(deleteButton, new Color(255, 69, 58)); // Red for Delete
 
         // Add buttons to footer
@@ -129,8 +131,8 @@ public class AccountsPage extends BaseFrame {
     });
         return editButton;
     }
-    private JButton createDeleteButton(String accountName) {
-        JButton deleteButton = new JButton("Delete");
+    private JButton createDeleteButton() {
+        JButton deleteButton = new JButton("Delete Account");
         deleteButton.setFont(new Font("SansSerif", Font.BOLD, 14));
         deleteButton.setBackground(new Color(255, 69, 58)); // Red color
         deleteButton.setForeground(Color.WHITE);
@@ -138,15 +140,52 @@ public class AccountsPage extends BaseFrame {
         deleteButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
 
         deleteButton.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(this,
-                    "Are you sure you want to delete the account \"" + accountName + "\"?",
-                    "Confirm Deletion",
-                    JOptionPane.YES_NO_OPTION);
+            JComboBox<String> accountDropdown = new JComboBox<>();
+            Map<String, Integer> accountIdMap = new HashMap<>();
 
-            if (confirm == JOptionPane.YES_OPTION) {
-                deleteAccountFromDatabase(accountName);
-                dispose();
-                new AccountsPage(userId); // Refresh the accounts page
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                String sql = "SELECT id, name FROM accounts WHERE user_id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setInt(1, userId);
+                    ResultSet rs = stmt.executeQuery();
+                    while (rs.next()) {
+                        int accountId = rs.getInt("id");
+                        String accountName = rs.getString("name");
+                        accountIdMap.put(accountName, accountId);
+                        accountDropdown.addItem(accountName);
+                    }
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Error loading accounts: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int result = JOptionPane.showConfirmDialog(this, accountDropdown, "Select Account to Delete", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                String selectedAccount = (String) accountDropdown.getSelectedItem();
+                if (selectedAccount != null) {
+                    int accountId = accountIdMap.get(selectedAccount);
+
+                    int confirm = JOptionPane.showConfirmDialog(this,
+                            "Are you sure you want to delete the account \"" + selectedAccount + "\"?",
+                            "Confirm Deletion",
+                            JOptionPane.YES_NO_OPTION);
+
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        try (Connection conn = DatabaseConnection.getConnection()) {
+                            String sql = "DELETE FROM accounts WHERE id = ?";
+                            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                                stmt.setInt(1, accountId);
+                                stmt.executeUpdate();
+                            }
+                            JOptionPane.showMessageDialog(this, "Account deleted successfully!");
+                            dispose();
+                            new AccountsPage(userId); // Refresh the accounts page
+                        } catch (SQLException ex) {
+                            JOptionPane.showMessageDialog(this, "Error deleting account: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }
             }
         });
 
