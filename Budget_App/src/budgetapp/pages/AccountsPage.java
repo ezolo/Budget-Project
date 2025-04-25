@@ -245,20 +245,5 @@ public class AccountsPage extends BaseFrame {
         }
         return accounts;
     }
-    private void deleteAccountFromDatabase(String accountName) {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "DELETE FROM accounts WHERE user_id = ? AND name = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, userId);
-                stmt.setString(2, accountName);
-                stmt.executeUpdate();
-            }
-            JOptionPane.showMessageDialog(this, "Account deleted successfully!");
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error deleting account: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    public static void showAccountPanel(int userId) {
-        new AccountsPage(userId);
-    }
+
 }
