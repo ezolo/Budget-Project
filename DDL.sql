@@ -22,6 +22,10 @@ CREATE TABLE categories (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 ALTER TABLE categories ADD COLUMN is_custom_image BOOLEAN DEFAULT FALSE;
+ALTER TABLE categories ADD COLUMN description VARCHAR(255) DEFAULT NULL;
+ALTER TABLE categories ADD COLUMN is_essential BOOLEAN DEFAULT FALSE;
+ALTER TABLE categories 
+ADD CONSTRAINT uc_user_category UNIQUE (user_id, name);
 
 -- ACCOUNTS table
 CREATE TABLE IF NOT EXISTS accounts (
