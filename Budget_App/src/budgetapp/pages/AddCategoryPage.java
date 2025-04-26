@@ -1,208 +1,172 @@
 package budgetapp.pages;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Image;
-import java.awt.Insets;
+import budgetapp.connection.DatabaseConnection;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-
-import budgetapp.connection.DatabaseConnection;
-
-public class AddCategoryPage extends BaseFrame {
+public class AddCategoryPage extends JFrame {
     private final int userId;
+    private final Runnable refreshCallback;
     private JLabel imagePreviewLabel;
     private File selectedImageFile;
+    private JTextArea descriptionField;
 
-    public AddCategoryPage(int userId) {  // Only takes userId now
-        super("add_category", userId);    // BaseFrame parameters
+    public AddCategoryPage(int userId, Runnable refreshCallback) {
         this.userId = userId;
-        initUI();
-        setVisible(true);
+        this.refreshCallback = refreshCallback;
+        initializeUI();
     }
 
-    @Override
-    protected void initUI() {
-        // Main content setup
-        contentPanel.setLayout(new BorderLayout());
-        contentPanel.setBackground(new Color(242, 243, 247));
-        
-        // Title bar
-        JPanel titleBarPanel = new JPanel(new BorderLayout());
-        titleBarPanel.setBackground(new Color(0, 150, 0));
-        titleBarPanel.setPreferredSize(new Dimension(getWidth(), 60));
-        
-     // Create a centered panel for the title
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        centerPanel.setOpaque(false);
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(0, -60, 0, 0)); // Adjust -60 for perfect centering
-        
-        JLabel titleLabel = new JLabel("ADD NEW CATEGORY");
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 28));
-        titleLabel.setForeground(Color.WHITE);
-        centerPanel.add(titleLabel);
+    private void initializeUI() {
+        setTitle("Add New Category");
+        setSize(400, 400);
+        setLayout(new BorderLayout());
 
-        titleBarPanel.add(centerPanel, BorderLayout.CENTER);
-        
-        // Back button
-        JButton backButton = new JButton("<html>&#8592; Back</html>");
-        backButton.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        backButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
-        backButton.setBackground(new Color(0, 120, 0)); // Darker green to match title bar
-        backButton.setForeground(Color.WHITE);
-        backButton.setFocusPainted(false);
-        backButton.setContentAreaFilled(false); // Makes the button transparent
-        backButton.setOpaque(true); // Allows background color to show
-        backButton.addActionListener(e -> {
-            new CategoriesPage(userId);
-            dispose();
-        });
-        titleBarPanel.add(backButton, BorderLayout.WEST);
-        
-        // Form panel
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(new Color(242, 243, 247));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-        JTextField nameField = new JTextField(20);
+        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+
+        JTextField nameField = new JTextField();
+        descriptionField = new JTextArea(3, 20);
+        JScrollPane descriptionScroll = new JScrollPane(descriptionField);
+
         imagePreviewLabel = new JLabel("No image selected", SwingConstants.CENTER);
         imagePreviewLabel.setPreferredSize(new Dimension(150, 150));
-        
+
         JButton selectImageBtn = new JButton("Select Image");
         selectImageBtn.addActionListener(this::handleImageSelection);
-        
-        JButton saveBtn = new JButton("Save Category");
-        saveBtn.addActionListener(e -> saveCategory(nameField.getText(), selectedImageFile));
 
-        // Add components to form
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        formPanel.add(new JLabel("Category Name:"), gbc);
-        
-        gbc.gridx = 1;
-        formPanel.add(nameField, gbc);
-        
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        formPanel.add(new JLabel("Image:"), gbc);
-        
-        gbc.gridx = 1;
-        formPanel.add(selectImageBtn, gbc);
-        
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.CENTER;
-        formPanel.add(imagePreviewLabel, gbc);
-        
-        gbc.gridy = 3;
-        formPanel.add(saveBtn, gbc);
-        
-        // Add components to frame
-        contentPanel.add(titleBarPanel, BorderLayout.NORTH);
-        contentPanel.add(formPanel, BorderLayout.CENTER);
+        JButton saveBtn = new JButton("Save Category");
+        saveBtn.addActionListener(e -> saveCategory(
+                userId,
+                nameField.getText(),
+                selectedImageFile,
+                refreshCallback
+        ));
+
+        formPanel.add(new JLabel("Category Name:"));
+        formPanel.add(nameField);
+        formPanel.add(new JLabel("Description:"));
+        formPanel.add(descriptionScroll);
+        formPanel.add(new JLabel("Image:"));
+        formPanel.add(selectImageBtn);
+        formPanel.add(new JLabel("Preview:"));
+        formPanel.add(imagePreviewLabel);
+
+        add(formPanel, BorderLayout.CENTER);
+        add(saveBtn, BorderLayout.SOUTH);
+
+        pack();
+        setLocationRelativeTo(null);
     }
 
     private void handleImageSelection(ActionEvent e) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-            "Image files", "jpg", "png", "gif"));
-        
+                "Image files", "jpg", "png", "gif"));
+
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             selectedImageFile = fileChooser.getSelectedFile();
             try {
                 ImageIcon icon = new ImageIcon(ImageIO.read(selectedImageFile)
-                    .getScaledInstance(150, 150, Image.SCALE_SMOOTH));
+                        .getScaledInstance(150, 150, Image.SCALE_SMOOTH));
                 imagePreviewLabel.setIcon(icon);
                 imagePreviewLabel.setText("");
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, 
-                    "Error loading image", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Error loading image", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    private void saveCategory(String name, File imageFile) {
+    private void saveCategory(int userId, String name, File imageFile, Runnable callback) {
         if (name == null || name.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Please enter a category name", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Please enter a category name", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
-            saveCategoryToDatabase(userId, name, imageFile);
-            JOptionPane.showMessageDialog(this, 
-                "Category added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            new CategoriesPage(userId);
+            saveCategoryToDatabase(userId, name, imageFile, descriptionField.getText());
+            if (callback != null) {
+                callback.run();
+            }
             dispose();
         } catch (SQLException | IOException ex) {
-            JOptionPane.showMessageDialog(this, 
-                "Error saving category: " + ex.getMessage(), 
-                "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Error saving category: " + ex.getMessage(),
+                    "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void saveCategoryToDatabase(int userId, String name, File imageFile) 
-    	    throws SQLException, IOException {
-    	    
-    	    try (Connection conn = DatabaseConnection.getConnection()) {
-    	        conn.setAutoCommit(false);
-    	        try {
-    	            String sql = "INSERT INTO categories (user_id, name, is_predefined, image_path, is_custom_image) " +
-    	                        "VALUES (?, ?, FALSE, ?, TRUE)";
-    	            
-    	            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-    	                String imagePath = saveCategoryImage(imageFile);
-    	                stmt.setInt(1, userId);
-    	                stmt.setString(2, name);
-    	                stmt.setString(3, imagePath);
-    	                stmt.executeUpdate();
-    	            }
-    	            conn.commit();
-    	        } catch (Exception e) {
-    	            conn.rollback();
-    	            throw e;
-    	        }
-    	    }
-    	}
-    
-    private String saveCategoryImage(File imageFile) throws IOException {
-        // Create directory if it doesn't exist
-        File dir = new File("user_images/" + userId);
-        if (!dir.exists()) {
-            dir.mkdirs();
+    private void saveCategoryToDatabase(int userId, String name, File imageFile, String description)
+            throws SQLException, IOException {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                String checkSql = "SELECT id FROM categories WHERE user_id = ? AND name = ?";
+                boolean exists = false;
+                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                    checkStmt.setInt(1, userId);
+                    checkStmt.setString(2, name);
+                    ResultSet rs = checkStmt.executeQuery();
+                    exists = rs.next();
+                }
+
+                String sql;
+                if (exists) {
+                    sql = "UPDATE categories SET image_path = ?, description = ? WHERE user_id = ? AND name = ?";
+                } else {
+                    sql = "INSERT INTO categories (user_id, name, is_predefined, image_path, is_custom_image, description) " +
+                            "VALUES (?, ?, FALSE, ?, TRUE, ?)";
+                }
+
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    String imagePath = null;
+                    if (imageFile != null) {
+                        imagePath = saveCategoryImage(imageFile);
+                    }
+
+                    if (exists) {
+                        stmt.setString(1, imagePath);
+                        stmt.setString(2, description);
+                        stmt.setInt(3, userId);
+                        stmt.setString(4, name);
+                    } else {
+                        stmt.setInt(1, userId);
+                        stmt.setString(2, name);
+                        stmt.setString(3, imagePath);
+                        stmt.setString(4, description);
+                    }
+                    stmt.executeUpdate();
+                }
+
+                conn.commit();
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         }
-        
-        // Copy file to user directory
-        String newFileName = System.currentTimeMillis() + "_" + imageFile.getName();
-        File dest = new File(dir, newFileName);
-        
-        Files.copy(imageFile.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        
-        return dest.getAbsolutePath();
-    
+    }
+
+    private String saveCategoryImage(File imageFile) throws IOException {
+        File directory = new File("custom_images");
+        if (!directory.exists() && !directory.mkdirs()) {
+            throw new IOException("Failed to create directory: " + directory.getAbsolutePath());
+        }
+
+        String uniqueName = System.currentTimeMillis() + "_" + imageFile.getName();
+        File destination = new File(directory, uniqueName);
+        ImageIO.write(ImageIO.read(imageFile), "png", destination);
+        return destination.getPath();
     }
 }

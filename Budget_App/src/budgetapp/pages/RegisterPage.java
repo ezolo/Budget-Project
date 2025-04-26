@@ -25,8 +25,8 @@ import java.awt.event.*;
 
 
 
-	//This section will allow user to create a new account for application
-public class RegisterPage extends JFrame 
+//This section will allow user to create a new account for application
+public class RegisterPage extends JFrame
 {
     private LineTextField nameField, usernameField, emailField;
     private LinePasswordField passwordField;
@@ -39,7 +39,7 @@ public class RegisterPage extends JFrame
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(null);
-        
+
         // Color scheme
         Container cp = getContentPane();
         cp.setBackground(Color.WHITE);
@@ -117,22 +117,22 @@ public class RegisterPage extends JFrame
 
         // Validate fields
         boolean hasError = false;
-        
+
         if (nameField.getText().trim().isEmpty()) {
             nameError.setText("Please enter your name");
             hasError = true;
         }
-        
+
         if (usernameField.getText().trim().isEmpty()) {
             usernameError.setText("Please enter a username");
             hasError = true;
         }
-        
+
         if (emailField.getText().trim().isEmpty() || !emailField.getText().contains("@")) {
             emailError.setText("Please enter a valid email");
             hasError = true;
         }
-        
+
         if (passwordField.getPassword().length == 0) {
             passwordError.setText("Please enter a password");
             hasError = true;
@@ -142,71 +142,71 @@ public class RegisterPage extends JFrame
 
         // Database operation
         try (Connection conn = DatabaseConnection.getConnection()) {
-        	conn.setAutoCommit(false);
-        	
-        	
-        	 try {
-                 // 1. Create user account
-                 PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)");
-                 
-                 stmt.setString(1, nameField.getText().trim());
-                 stmt.setString(2, usernameField.getText().trim());
-                 stmt.setString(3, emailField.getText().trim());
-                 stmt.setString(4, String.valueOf(passwordField.getPassword()));
-                 
-                 stmt.executeUpdate();
-                 
-                 // 2. Get the new user's ID
-                 ResultSet rs = conn.prepareStatement("SELECT LAST_INSERT_ID()").executeQuery();
-                 rs.next();
-                 int userId = rs.getInt(1);
-                 
-                 // 3. Add default categories with their image paths
-                 Map<String, String> defaultCategories = new HashMap<>();
-                 defaultCategories.put("Housing", "house_image.jpg");
-                 defaultCategories.put("Utilities", "utilities_image.jpg");
-                 defaultCategories.put("Groceries", "groceries_image.jpg");
-                 defaultCategories.put("Transportation", "car_image.jpg");
-                 defaultCategories.put("Healthcare", "healthcare_image.jpg");
-                 defaultCategories.put("Loans", "loans_image.jpg");
-                 defaultCategories.put("Entertainment", "entertainment_image.jpg");
-                 defaultCategories.put("Travel", "travel_image.jpg");
-                 defaultCategories.put("Shopping", "shopping_image.jpg");
-                 defaultCategories.put("Subscriptions", "subscriptions_image.jpg");
-                 
-                 PreparedStatement categoryStmt = conn.prepareStatement(
-                     "INSERT INTO categories (user_id, name, is_predefined, image_path, is_custom_image) " +
-                     "VALUES (?, ?, TRUE, ?, FALSE)");
-                 
-                 for (Map.Entry<String, String> entry : defaultCategories.entrySet()) {
-                     categoryStmt.setInt(1, userId);
-                     categoryStmt.setString(2, entry.getKey());
-                     categoryStmt.setString(3, "/categories/" + entry.getValue());
-                     categoryStmt.addBatch();
-                 }
-                 
-                 categoryStmt.executeBatch();
-                 
-                 // Commit transaction
-                 conn.commit();
-                 
-                 JOptionPane.showMessageDialog(this, "Account created successfully with default categories!");
-                 dispose();
-                 new LoginApp();
-                 
-             } catch (SQLException e) {
-                 conn.rollback();
-                 if (e.getMessage().contains("username")) {
-                     usernameError.setText("Username already exists");
-                 } else if (e.getMessage().contains("email")) {
-                     emailError.setText("Email already registered");
-                 } else {
-                     JOptionPane.showMessageDialog(this, "Registration failed: " + e.getMessage());
-                 }
-             }
-         } catch (Exception e) {
-             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-         }
-     }
+            conn.setAutoCommit(false);
+
+
+            try {
+                // 1. Create user account
+                PreparedStatement stmt = conn.prepareStatement(
+                        "INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)");
+
+                stmt.setString(1, nameField.getText().trim());
+                stmt.setString(2, usernameField.getText().trim());
+                stmt.setString(3, emailField.getText().trim());
+                stmt.setString(4, String.valueOf(passwordField.getPassword()));
+
+                stmt.executeUpdate();
+
+                // 2. Get the new user's ID
+                ResultSet rs = conn.prepareStatement("SELECT LAST_INSERT_ID()").executeQuery();
+                rs.next();
+                int userId = rs.getInt(1);
+
+                // 3. Add default categories with their image paths
+                Map<String, String> defaultCategories = new HashMap<>();
+                defaultCategories.put("Housing", "house_image.jpg");
+                defaultCategories.put("Utilities", "utilities_image.jpg");
+                defaultCategories.put("Groceries", "groceries_image.jpg");
+                defaultCategories.put("Transportation", "car_image.jpg");
+                defaultCategories.put("Healthcare", "healthcare_image.jpg");
+                defaultCategories.put("Loans", "loans_image.jpg");
+                defaultCategories.put("Entertainment", "entertainment_image.jpg");
+                defaultCategories.put("Travel", "travel_image.jpg");
+                defaultCategories.put("Shopping", "shopping_image.jpg");
+                defaultCategories.put("Subscriptions", "subscriptions_image.jpg");
+
+                PreparedStatement categoryStmt = conn.prepareStatement(
+                        "INSERT INTO categories (user_id, name, is_predefined, image_path, is_custom_image) " +
+                                "VALUES (?, ?, TRUE, ?, FALSE)");
+
+                for (Map.Entry<String, String> entry : defaultCategories.entrySet()) {
+                    categoryStmt.setInt(1, userId);
+                    categoryStmt.setString(2, entry.getKey());
+                    categoryStmt.setString(3, "/categories/" + entry.getValue());
+                    categoryStmt.addBatch();
+                }
+
+                categoryStmt.executeBatch();
+
+                // Commit transaction
+                conn.commit();
+
+                JOptionPane.showMessageDialog(this, "Account created successfully with default categories!");
+                dispose();
+                new LoginApp();
+
+            } catch (SQLException e) {
+                conn.rollback();
+                if (e.getMessage().contains("username")) {
+                    usernameError.setText("Username already exists");
+                } else if (e.getMessage().contains("email")) {
+                    emailError.setText("Email already registered");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Registration failed: " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }
 }
