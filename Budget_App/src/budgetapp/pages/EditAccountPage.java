@@ -59,7 +59,7 @@ public class EditAccountPage extends JFrame {
 
     private void loadAccounts() {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT id, name FROM accounts WHERE user_id = ?";
+            String sql = "SELECT id, account_name FROM accounts WHERE user_id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
                 ResultSet rs = stmt.executeQuery();
@@ -81,12 +81,12 @@ public class EditAccountPage extends JFrame {
 
         int accountId = accountIdMap.get(selectedAccount);
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT name, balance FROM accounts WHERE id = ?";
+            String sql = "SELECT account_name, balance FROM accounts WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, accountId);
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
-                    nameField.setText(rs.getString("name"));
+                    nameField.setText(rs.getString("account_name"));
                     balanceField.setText(String.valueOf(rs.getDouble("balance")));
                 }
             }

@@ -53,7 +53,7 @@ public class AddAccountPage extends JFrame {
         try {
             double balance = Double.parseDouble(accountBalance);
             try (Connection conn = DatabaseConnection.getConnection()) {
-                String sql = "INSERT INTO accounts (user_id, name, balance) VALUES (?, ?, ?)";
+                String sql = "INSERT INTO accounts (user_id, account_name, balance) VALUES (?, ?, ?)";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                     stmt.setInt(1, userId);
                     stmt.setString(2, accountName);

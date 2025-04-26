@@ -144,13 +144,13 @@ public class AccountsPage extends BaseFrame {
             Map<String, Integer> accountIdMap = new HashMap<>();
 
             try (Connection conn = DatabaseConnection.getConnection()) {
-                String sql = "SELECT id, name FROM accounts WHERE user_id = ?";
+                String sql = "SELECT id, account_name FROM accounts WHERE user_id = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                     stmt.setInt(1, userId);
                     ResultSet rs = stmt.executeQuery();
                     while (rs.next()) {
                         int accountId = rs.getInt("id");
-                        String accountName = rs.getString("name");
+                        String accountName = rs.getString("account_name");
                         accountIdMap.put(accountName, accountId);
                         accountDropdown.addItem(accountName);
                     }
@@ -233,12 +233,12 @@ public class AccountsPage extends BaseFrame {
 
     private List<String> loadAccountsList(Connection conn, int userId) throws SQLException {
         List<String> accounts = new ArrayList<>();
-        String sql = "SELECT name, balance FROM accounts WHERE user_id = ?";
+        String sql = "SELECT account_name, balance FROM accounts WHERE user_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                String name = rs.getString("name");
+                String name = rs.getString("account_name");
                 String balance = String.format("%.2f", rs.getDouble("balance"));
                 accounts.add(Arrays.toString(new String[]{name, balance}));
             }
