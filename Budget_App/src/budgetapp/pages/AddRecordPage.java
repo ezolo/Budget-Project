@@ -1,7 +1,7 @@
 package budgetapp.pages;
 
 import budgetapp.connection.DatabaseConnection;
-
+import com.toedter.calendar.JDateChooser;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
@@ -28,27 +28,37 @@ public class AddRecordPage extends JFrame {
 
     private void initializeUI() {
         setTitle("Add Record");
-        setSize(400, 300);
-        setLayout(new GridLayout(6, 2, 5, 5));
+        setSize(400, 350); // Adjusted size to accommodate the new field
+        setLayout(new GridLayout(7, 2, 5, 5));
 
-        JTextField dateField = new JTextField();
+        // Add a date picker
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setDateFormatString("yyyy-MM-dd");
+        dateChooser.setDate(new java.util.Date()); // Prepopulate with today's date
+
         JTextField amountField = new JTextField();
         JComboBox<String> typeComboBox = new JComboBox<>(new String[]{"Expense", "Income"});
         JTextField categoryField = new JTextField();
+        JTextField descriptionField = new JTextField(); // New description field
 
         add(new JLabel("Date (YYYY-MM-DD):"));
-        add(dateField);
+        add(dateChooser);
         add(new JLabel("Account:"));
-        add(accountDropdown); // Use the dropdown for accounts
+        add(accountDropdown);
         add(new JLabel("Amount:"));
         add(amountField);
         add(new JLabel("Type:"));
         add(typeComboBox);
         add(new JLabel("Category:"));
         add(categoryField);
+        add(new JLabel("Description:")); // Label for description
+        add(descriptionField);
 
         JButton saveButton = new JButton("Save");
-        saveButton.addActionListener(e -> saveRecord(dateField.getText().trim(), (String) accountDropdown.getSelectedItem(), amountField.getText().trim(), (String) typeComboBox.getSelectedItem(), categoryField.getText().trim()));
+        saveButton.addActionListener(e -> {
+            String selectedDate = ((JTextField) dateChooser.getDateEditor().getUiComponent()).getText();
+            saveRecord(selectedDate.trim(), (String) accountDropdown.getSelectedItem(), amountField.getText().trim(), (String) typeComboBox.getSelectedItem(), categoryField.getText().trim(), descriptionField.getText().trim());
+        });
         add(saveButton);
 
         setLocationRelativeTo(null);
@@ -57,13 +67,13 @@ public class AddRecordPage extends JFrame {
 
     private void loadAccounts() {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT id, name FROM accounts WHERE user_id = ?";
+            String sql = "SELECT id, account_name FROM accounts WHERE user_id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     int accountId = rs.getInt("id");
-                    String accountName = rs.getString("name");
+                    String accountName = rs.getString("account_name");
                     accountIdMap.put(accountName, accountId);
                     accountDropdown.addItem(accountName);
                 }
@@ -73,8 +83,8 @@ public class AddRecordPage extends JFrame {
         }
     }
 
-    private void saveRecord(String date, String account, String amount, String type, String category) {
-        if (date.isEmpty() || account == null || amount.isEmpty() || type.isEmpty() || category.isEmpty()) {
+    private void saveRecord(String date, String account, String amount, String type, String category, String description) {
+        if (date.isEmpty() || account == null || amount.isEmpty() || type.isEmpty() || category.isEmpty() || description.isEmpty()) {
             JOptionPane.showMessageDialog(this, "All fields are required.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -83,7 +93,7 @@ public class AddRecordPage extends JFrame {
             double amountValue = Double.parseDouble(amount);
             int accountId = accountIdMap.get(account);
             try (Connection conn = DatabaseConnection.getConnection()) {
-                String sql = "INSERT INTO expenses (user_id, expense_date, account_id, amount, type, category_id) VALUES (?, ?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO expenses (user_id, expense_date, account_id, amount, type, category_id, description) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                     stmt.setInt(1, userId);
                     stmt.setString(2, date);
@@ -91,6 +101,7 @@ public class AddRecordPage extends JFrame {
                     stmt.setDouble(4, amountValue);
                     stmt.setString(5, type);
                     stmt.setString(6, category);
+                    stmt.setString(7, description); // Insert description
                     stmt.executeUpdate();
                 }
                 JOptionPane.showMessageDialog(this, "Record added successfully!");
