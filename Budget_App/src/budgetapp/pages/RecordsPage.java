@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class RecordsPage extends BaseFrame {
@@ -120,7 +121,7 @@ public class RecordsPage extends BaseFrame {
 
 	private void loadTransactions() {
 		transactionsPanel.removeAll();
-		Map<String, JPanel> datePanels = new HashMap<>();
+		Map<String, JPanel> datePanels = new LinkedHashMap<>();
 
 		try (Connection conn = DatabaseConnection.getConnection()) {
 			String sql = "SELECT e.id, e.expense_date, a.account_name, e.amount, e.description, c.name AS category_name, c.image_path " +
@@ -134,6 +135,7 @@ public class RecordsPage extends BaseFrame {
 				ResultSet rs = stmt.executeQuery();
 				while (rs.next()) {
 					String date = rs.getString("expense_date");
+					System.out.println("date" + date);
 					JPanel datePanel = datePanels.computeIfAbsent(date, d -> createDatePanel(d));
 					datePanel.add(createTransactionPanel(
 							rs.getInt("id"),
@@ -150,7 +152,6 @@ public class RecordsPage extends BaseFrame {
 			System.out.println("Error loading transactions: " + e.getMessage());
 			JOptionPane.showMessageDialog(this, "Error loading transactions: " + e.getMessage());
 		}
-
 		datePanels.values().forEach(transactionsPanel::add);
 		transactionsPanel.revalidate();
 		transactionsPanel.repaint();
