@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     month VARCHAR(20), -- e.g., 'April 2025'
     amount DECIMAL(10, 2),
     type VARCHAR(45),
+    description VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (account_id) REFERENCES accounts(id),
     FOREIGN KEY (category_id) REFERENCES categories(id)
@@ -55,23 +56,15 @@ CREATE TABLE IF NOT EXISTS expenses (
 CREATE TABLE IF NOT EXISTS budget (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
-    month VARCHAR(20),
+    month_year VARCHAR(20),  -- Changed from 'month' to 'month_year' to store format like "January-2023"
     income DECIMAL(10, 2),
     needs_percent DECIMAL(5, 2),
     wants_percent DECIMAL(5, 2),
     savings_percent DECIMAL(5, 2),
     budget_set BOOLEAN DEFAULT FALSE,
     income_confirmed BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
--- CHALLENGES table
-CREATE TABLE IF NOT EXISTS challenges (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    challenge_name VARCHAR(100),
-    completed BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE KEY unique_user_month (user_id, month_year)  -- Ensures one budget per user per month
 );
 
 -- SUBSCRIPTIONS table
@@ -81,4 +74,23 @@ CREATE TABLE subscriptions (
     service_name VARCHAR(100),
     cost DOUBLE,
     FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- CHALLENGES table
+CREATE TABLE IF NOT EXISTS user_challenges (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    challenge_name VARCHAR(100),
+    status ENUM('not_started', 'in_progress', 'completed') DEFAULT 'not_started',
+    completion_date DATE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+ALTER TABLE user_challenges 
+MODIFY COLUMN status ENUM('not_started', 'in_progress', 'completed', 'claimed') DEFAULT 'not_started';
+
+-- BADGES table
+CREATE TABLE IF NOT EXISTS badges (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    challenge_name VARCHAR(100) UNIQUE,
+    badge_image_path VARCHAR(255)
 );
