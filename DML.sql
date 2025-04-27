@@ -27,3 +27,10 @@ VALUES
 (2, 'Travel', TRUE, 'resources/categories/travel_image.jpg', FALSE, "Spending on movies, games, dining out, streaming, and other leisure activities", FALSE),
 (2, 'Shopping', TRUE, 'resources/categories/shopping_image.jpg', FALSE, "Purchases of clothing, electronics, gifts, and non-essential items", FALSE),
 (2, 'Subscriptions', TRUE, 'resources/categories/subscriptions_image.jpg', FALSE, "Recurring charges for services like Netflix, Spotify, gym memberships, or apps", FALSE);
+
+INSERT INTO badges (challenge_name, badge_image_path) 
+VALUES 
+('No Spend Day', 'resources/badges/No_Spend_Day_Badge.JPG'),
+('Cancel 1 Subscription', 'resources/badges/Subscription_Badge.JPG'),
+('Plan a Monthly Budget', 'resources/badges/Plan_Monthly_Budget.JPG'),
+('Track All Expenses for a Week', 'resources/badges/Track_Expenses_Badge.JPG');
