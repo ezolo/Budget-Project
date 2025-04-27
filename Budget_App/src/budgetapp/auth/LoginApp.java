@@ -154,7 +154,7 @@ import java.awt.event.*;
 	    
 	    try (Connection conn = DatabaseConnection.getConnection()) {
 	        // FIRST: Check if username exists
-	        PreparedStatement userStmt = conn.prepareStatement("SELECT * FROM users WHERE username=?");
+	    	PreparedStatement userStmt = conn.prepareStatement("SELECT * FROM users WHERE BINARY username=?");
 	        userStmt.setString(1, username);
 	        ResultSet userRs = userStmt.executeQuery();
 

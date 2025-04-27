@@ -182,7 +182,7 @@ public class AccountsPage extends BaseFrame {
                             dispose();
                             new AccountsPage(userId); // Refresh the accounts page
                         } catch (SQLException ex) {
-                            JOptionPane.showMessageDialog(this, "Error deleting account: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(this, "Account Deletion failed, as there are expenses linked to this account", "Error", JOptionPane.ERROR_MESSAGE);
                         }
                     }
                 }

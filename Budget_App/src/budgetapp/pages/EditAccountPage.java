@@ -65,7 +65,7 @@ public class EditAccountPage extends JFrame {
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     int accountId = rs.getInt("id");
-                    String accountName = rs.getString("name");
+                    String accountName = rs.getString("account_name");
                     accountIdMap.put(accountName, accountId);
                     accountDropdown.addItem(accountName);
                 }
@@ -111,7 +111,7 @@ public class EditAccountPage extends JFrame {
         try {
             double newBalance = Double.parseDouble(newBalanceStr);
             try (Connection conn = DatabaseConnection.getConnection()) {
-                String sql = "UPDATE accounts SET name = ?, balance = ? WHERE id = ?";
+                String sql = "UPDATE accounts SET account_name = ?, balance = ? WHERE id = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                     stmt.setString(1, newName);
                     stmt.setDouble(2, newBalance);
