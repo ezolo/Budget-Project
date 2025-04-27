@@ -17,6 +17,7 @@ import java.util.Map;
 
 public class RecordsPage extends BaseFrame {
 	private JPanel transactionsPanel;
+	private JPanel headerPanel;
 
 	public RecordsPage(int userId) {
 		super("Records", userId);
@@ -28,7 +29,8 @@ public class RecordsPage extends BaseFrame {
 		contentPanel.setLayout(new BorderLayout());
 
 		// Header Section
-		contentPanel.add(createHeaderPanel(), BorderLayout.NORTH);
+		headerPanel = createHeaderPanel();
+		contentPanel.add(headerPanel, BorderLayout.NORTH);
 
 		// Transactions Section
 		transactionsPanel = new JPanel();
@@ -145,6 +147,7 @@ public class RecordsPage extends BaseFrame {
 				}
 			}
 		} catch (SQLException e) {
+			System.out.println("Error loading transactions: " + e.getMessage());
 			JOptionPane.showMessageDialog(this, "Error loading transactions: " + e.getMessage());
 		}
 
@@ -262,6 +265,23 @@ public class RecordsPage extends BaseFrame {
 		panel.add(valueLabel);
 		return panel;
 	}
+	private void refreshTransactions() {
+		loadTransactions();
+		refreshSummaryPanel();
+	}
+
+	private void refreshSummaryPanel() {
+//		double totalExpenses = getMonthlyTotal("expenses");
+//		double totalIncome = getMonthlyTotal("income");
+//		double totalBalance = totalIncome - totalExpenses;
+
+
+		contentPanel.remove(headerPanel); // Remove the old header panel
+		headerPanel = createHeaderPanel();
+		contentPanel.add(headerPanel, BorderLayout.NORTH); // Add the new header panel
+		contentPanel.revalidate();
+		contentPanel.repaint();
+	}
 
 	private ImageIcon loadCategoryIcon(String categoryName) {
 		Map<String, String> categoryImages = new HashMap<>();
@@ -305,7 +325,4 @@ public class RecordsPage extends BaseFrame {
 		return new ImageIcon(icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
 	}
 
-	private void refreshTransactions() {
-		loadTransactions();
-	}
 }
