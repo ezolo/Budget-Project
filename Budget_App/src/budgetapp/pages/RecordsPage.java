@@ -4,6 +4,7 @@ import budgetapp.connection.DatabaseConnection;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -64,7 +65,6 @@ public class RecordsPage extends BaseFrame {
 		summaryPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 		summaryPanel.setBackground(new Color(240, 240, 240));
 
-		// Fetch dynamic data for the summary
 		double totalExpenses = getMonthlyTotal("expenses");
 		double totalIncome = getMonthlyTotal("income");
 		double totalBalance = totalIncome - totalExpenses;
@@ -135,7 +135,7 @@ public class RecordsPage extends BaseFrame {
 					JPanel datePanel = datePanels.computeIfAbsent(date, d -> createDatePanel(d));
 					datePanel.add(createTransactionPanel(
 							rs.getInt("id"),
-							rs.getString("expense_date"),
+							date,
 							rs.getString("account_name"),
 							rs.getString("amount"),
 							rs.getString("description"),
@@ -175,11 +175,71 @@ public class RecordsPage extends BaseFrame {
 		));
 		panel.setBackground(Color.WHITE);
 
+		JLabel imageLabel = new JLabel();
+		ImageIcon icon = loadCategoryIcon(categoryName.toLowerCase());
+		if (icon != null) {
+			imageLabel.setIcon(icon);
+		} else {
+			imageLabel.setText("No Image");
+		}
+		imageLabel.setPreferredSize(new Dimension(50, 50));
+		panel.add(imageLabel, BorderLayout.WEST);
+
 		JLabel detailsLabel = new JLabel("<html>" + date + " | " + account + " | " + categoryName + " | $" + amount + "<br>Description: " + description + "</html>");
 		detailsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
 		panel.add(detailsLabel, BorderLayout.CENTER);
 
+		JPanel buttonsPanel = createButtonsPanel(id);
+		panel.add(buttonsPanel, BorderLayout.EAST);
+
 		return panel;
+	}
+
+	private JPanel createButtonsPanel(int id) {
+		JPanel buttonsPanel = new JPanel();
+		buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
+		buttonsPanel.setBackground(Color.WHITE);
+
+		JButton editButton = createIconButton("/resources/records/edit.png", "Edit Record", e -> editTransaction(id));
+		JButton deleteButton = createIconButton("/resources/records/delete.png", "Delete Record", e -> deleteTransaction(id));
+
+		buttonsPanel.add(editButton);
+		buttonsPanel.add(deleteButton);
+
+		return buttonsPanel;
+	}
+
+	private JButton createIconButton(String iconPath, String tooltip, ActionListener actionListener) {
+		ImageIcon scaledIcon = scaleIcon(new ImageIcon(getClass().getResource(iconPath)), 16, 16);
+		JButton button = new JButton(scaledIcon);
+		button.setToolTipText(tooltip);
+		button.setFocusPainted(false);
+		button.setContentAreaFilled(false);
+		button.setBorderPainted(false);
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button.addActionListener(actionListener);
+		return button;
+	}
+
+	private void editTransaction(int id) {
+		new EditRecordPage(userId, id, this::refreshTransactions).setVisible(true);
+	}
+
+	private void deleteTransaction(int id) {
+		int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this record?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+		if (confirm == JOptionPane.YES_OPTION) {
+			try (Connection conn = DatabaseConnection.getConnection()) {
+				String sql = "DELETE FROM expenses WHERE id = ?";
+				try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+					stmt.setInt(1, id);
+					stmt.executeUpdate();
+				}
+				JOptionPane.showMessageDialog(this, "Record deleted successfully!");
+				refreshTransactions();
+			} catch (SQLException e) {
+				JOptionPane.showMessageDialog(this, "Error deleting record: " + e.getMessage());
+			}
+		}
 	}
 
 	private JPanel createSummaryBox(String title, String value, Color color) {
@@ -201,6 +261,48 @@ public class RecordsPage extends BaseFrame {
 		panel.add(Box.createVerticalStrut(5));
 		panel.add(valueLabel);
 		return panel;
+	}
+
+	private ImageIcon loadCategoryIcon(String categoryName) {
+		Map<String, String> categoryImages = new HashMap<>();
+		categoryImages.put("housing", "house_image.JPG");
+		categoryImages.put("utilities", "utilities_image.JPG");
+		categoryImages.put("groceries", "groceries_image.JPG");
+		categoryImages.put("transportation", "car_image.JPG");
+		categoryImages.put("healthcare", "healthcare_image.JPG");
+		categoryImages.put("loans", "loans_image.JPG");
+		categoryImages.put("entertainment", "entertainment_image.JPG");
+		categoryImages.put("travel", "travel_image.JPG");
+		categoryImages.put("shopping", "shopping_image.JPG");
+		categoryImages.put("subscriptions", "subscription_image.JPG");
+
+		String imageFile = categoryImages.getOrDefault(categoryName, "default_image.JPG");
+		String fullPath = "/resources/categories/" + imageFile;
+
+		ImageIcon icon = tryLoadIcon(fullPath);
+		if (icon == null) {
+			return tryLoadIcon("/resources/categories/default_image.JPG");
+		}
+		return scaleIcon(icon, 50, 50);
+	}
+
+	private ImageIcon tryLoadIcon(String path) {
+		try {
+			URL imageUrl = getClass().getResource(path);
+			if (imageUrl != null) {
+				return new ImageIcon(imageUrl);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private ImageIcon scaleIcon(ImageIcon icon, int width, int height) {
+		if (icon == null) {
+			return null;
+		}
+		return new ImageIcon(icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
 	}
 
 	private void refreshTransactions() {
