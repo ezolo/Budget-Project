@@ -41,7 +41,7 @@ public class EditRecordPage extends JFrame {
 
         initializeUI();
         loadRecordDetails();
-    }
+        }
 
     private void initializeUI() {
         setTitle("Edit Record");

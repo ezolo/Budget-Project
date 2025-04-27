@@ -16,14 +16,19 @@ public class AddRecordPage extends JFrame {
     private final Runnable refreshCallback;
     private final JComboBox<String> accountDropdown;
     private final Map<String, Integer> accountIdMap;
+    private final JComboBox<String> categoryDropdown;
+    private final Map<String, Integer> categoryIdMap;
 
     public AddRecordPage(int userId, Runnable refreshCallback) {
         this.userId = userId;
         this.refreshCallback = refreshCallback;
         this.accountIdMap = new HashMap<>();
         this.accountDropdown = new JComboBox<>();
+        this.categoryIdMap = new HashMap<>();
+        this.categoryDropdown = new JComboBox<>();
         initializeUI();
         loadAccounts();
+        loadCategories();
     }
 
     private void initializeUI() {
@@ -50,21 +55,36 @@ public class AddRecordPage extends JFrame {
         add(new JLabel("Type:"));
         add(typeComboBox);
         add(new JLabel("Category:"));
-        add(categoryField);
+        add(categoryDropdown);
         add(new JLabel("Description:")); // Label for description
         add(descriptionField);
 
         JButton saveButton = new JButton("Save");
         saveButton.addActionListener(e -> {
             String selectedDate = ((JTextField) dateChooser.getDateEditor().getUiComponent()).getText();
-            saveRecord(selectedDate.trim(), (String) accountDropdown.getSelectedItem(), amountField.getText().trim(), (String) typeComboBox.getSelectedItem(), categoryField.getText().trim(), descriptionField.getText().trim());
+            saveRecord(selectedDate.trim(), (String) accountDropdown.getSelectedItem(), amountField.getText().trim(), (String) typeComboBox.getSelectedItem(),(String) categoryDropdown.getSelectedItem(), descriptionField.getText().trim());
         });
         add(saveButton);
 
         setLocationRelativeTo(null);
         setVisible(true);
     }
-
+    private void loadCategories() {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "SELECT id, name FROM categories";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    int categoryId = rs.getInt("id");
+                    String categoryName = rs.getString("name");
+                    categoryIdMap.put(categoryName, categoryId); // Map category name to ID
+                    categoryDropdown.addItem(categoryName); // Add category name to dropdown
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading categories: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
     private void loadAccounts() {
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT id, account_name FROM accounts WHERE user_id = ?";
@@ -92,6 +112,7 @@ public class AddRecordPage extends JFrame {
         try {
             double amountValue = Double.parseDouble(amount);
             int accountId = accountIdMap.get(account);
+            int categoryId = categoryIdMap.get(category); // Get category ID from the map
             try (Connection conn = DatabaseConnection.getConnection()) {
                 String sql = "INSERT INTO expenses (user_id, expense_date, account_id, amount, type, category_id, description) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -100,7 +121,7 @@ public class AddRecordPage extends JFrame {
                     stmt.setInt(3, accountId);
                     stmt.setDouble(4, amountValue);
                     stmt.setString(5, type);
-                    stmt.setString(6, category);
+                    stmt.setInt(6, categoryId);
                     stmt.setString(7, description); // Insert description
                     stmt.executeUpdate();
                 }
