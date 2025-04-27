@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EditRecordPage extends JFrame {
-    private final int userId; // Added userId field
+    private final int userId;
     private final int recordId;
     private final Runnable refreshCallback;
     private final JComboBox<String> accountDropdown;
@@ -25,8 +25,8 @@ public class EditRecordPage extends JFrame {
     private final JTextField amountField;
     private final JTextField descriptionField;
 
-    public EditRecordPage(int userId, int recordId, Runnable refreshCallback) { // Updated constructor
-        this.userId = userId; // Initialize userId
+    public EditRecordPage(int userId, int recordId, Runnable refreshCallback) {
+        this.userId = userId;
         this.recordId = recordId;
         this.refreshCallback = refreshCallback;
         this.accountIdMap = new HashMap<>();
@@ -95,7 +95,7 @@ public class EditRecordPage extends JFrame {
     private void loadAccounts(Connection conn, int selectedAccountId) throws SQLException {
         String sql = "SELECT id, account_name FROM accounts WHERE user_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, userId); // Use the userId field
+            stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 int accountId = rs.getInt("id");
