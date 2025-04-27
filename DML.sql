@@ -6,7 +6,7 @@ INSERT INTO users (name, username, email, password) VALUES
 ('Jane Smith', 'jSmith1', 'jane@example.com', 'password321');
 
 -- accounts mock data
-INSERT INTO accounts (id, user_id, name, balance) VALUES
+INSERT INTO accounts (id, user_id, account_name, balance) VALUES
 ('1', '1', 'savings', '100'),
 ('2', '1', 'checking', '200'),
 ('3', '2', 'savings', '100'),
