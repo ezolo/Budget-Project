@@ -55,16 +55,16 @@ CREATE TABLE IF NOT EXISTS expenses (
 -- BUDGET table
 CREATE TABLE IF NOT EXISTS budget (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    month_year VARCHAR(20),  -- Changed from 'month' to 'month_year' to store format like "January-2023"
+    user_id INT NOT NULL,
+    month_year VARCHAR(50) NOT NULL,
     income DECIMAL(10, 2),
     needs_percent DECIMAL(5, 2),
     wants_percent DECIMAL(5, 2),
     savings_percent DECIMAL(5, 2),
     budget_set BOOLEAN DEFAULT FALSE,
-    income_confirmed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    UNIQUE KEY unique_user_month (user_id, month_year)  -- Ensures one budget per user per month
+    UNIQUE KEY (user_id, month_year)
 );
 
 -- SUBSCRIPTIONS table
