@@ -163,30 +163,38 @@ public class RegisterPage extends JFrame
                 int userId = rs.getInt(1);
 
                 // 3. Add default categories with their image paths
-                Map<String, String> defaultCategories = new HashMap<>();
-                defaultCategories.put("Housing", "house_image.jpg");
-                defaultCategories.put("Utilities", "utilities_image.jpg");
-                defaultCategories.put("Groceries", "groceries_image.jpg");
-                defaultCategories.put("Transportation", "car_image.jpg");
-                defaultCategories.put("Healthcare", "healthcare_image.jpg");
-                defaultCategories.put("Loans", "loans_image.jpg");
-                defaultCategories.put("Entertainment", "entertainment_image.jpg");
-                defaultCategories.put("Travel", "travel_image.jpg");
-                defaultCategories.put("Shopping", "shopping_image.jpg");
-                defaultCategories.put("Subscriptions", "subscriptions_image.jpg");
+                try {
+                    // 3. Add default categories with their image paths and descriptions
+                    Map<String, String[]> defaultCategories = new HashMap<>();
+                    defaultCategories.put("Housing", new String[]{"house_image.jpg", "Expenses related to housing, such as rent or mortgage."});
+                    defaultCategories.put("Utilities", new String[]{"utilities_image.jpg", "Expenses for electricity, water, and other utilities."});
+                    defaultCategories.put("Groceries", new String[]{"groceries_image.jpg", "Expenses for food and household supplies."});
+                    defaultCategories.put("Transportation", new String[]{"car_image.jpg", "Expenses for commuting, fuel, or public transport."});
+                    defaultCategories.put("Healthcare", new String[]{"healthcare_image.jpg", "Expenses for medical care and health insurance."});
+                    defaultCategories.put("Loans", new String[]{"loans_image.jpg", "Expenses for loan repayments."});
+                    defaultCategories.put("Entertainment", new String[]{"entertainment_image.jpg", "Expenses for leisure activities and entertainment."});
+                    defaultCategories.put("Travel", new String[]{"travel_image.jpg", "Expenses for trips and vacations."});
+                    defaultCategories.put("Shopping", new String[]{"shopping_image.jpg", "Expenses for personal shopping."});
+                    defaultCategories.put("Subscriptions", new String[]{"subscriptions_image.jpg", "Expenses for subscription services like streaming platforms."});
 
-                PreparedStatement categoryStmt = conn.prepareStatement(
-                        "INSERT INTO categories (user_id, name, is_predefined, image_path, is_custom_image) " +
-                                "VALUES (?, ?, TRUE, ?, FALSE)");
+                    PreparedStatement categoryStmt = conn.prepareStatement(
+                            "INSERT INTO categories (user_id, name, description, is_predefined, image_path, is_custom_image) " +
+                                    "VALUES (?, ?, ?, TRUE, ?, FALSE)"
+                    );
 
-                for (Map.Entry<String, String> entry : defaultCategories.entrySet()) {
-                    categoryStmt.setInt(1, userId);
-                    categoryStmt.setString(2, entry.getKey());
-                    categoryStmt.setString(3, "/categories/" + entry.getValue());
-                    categoryStmt.addBatch();
+                    for (Map.Entry<String, String[]> entry : defaultCategories.entrySet()) {
+                        categoryStmt.setInt(1, userId);
+                        categoryStmt.setString(2, entry.getKey());
+                        categoryStmt.setString(3, entry.getValue()[1]); // Description
+                        categoryStmt.setString(4, "/categories/" + entry.getValue()[0]); // Image path
+                        categoryStmt.addBatch();
+                    }
+
+                    categoryStmt.executeBatch();
+                } catch (SQLException e) {
+                    conn.rollback();
+                    throw e;
                 }
-
-                categoryStmt.executeBatch();
 
                 // Commit transaction
                 conn.commit();

@@ -1,6 +1,5 @@
 package budgetapp.auth;
 
-import java.awt.GridLayout;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,8 +7,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
 
 import budgetapp.components.*;
 import budgetapp.connection.DatabaseConnection;
@@ -18,7 +15,6 @@ import budgetapp.pages.RegisterPage;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 
 
 //This is where we set up the GUI & event handlers for Login page
