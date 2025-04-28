@@ -5,6 +5,8 @@ import budgetapp.connection.DatabaseConnection;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -13,7 +15,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.imageio.ImageIO;
 
 
@@ -21,13 +25,94 @@ public class ChallengesPage extends BaseFrame {
     private List<Challenge> challenges;
     private int userId;
     private Clip currentSoundClip;
+    private javax.swing.Timer refreshTimer;
+    private Set<Integer> lastKnownSubscriptionIds = new HashSet<>();
+
 
     public ChallengesPage(int userId) {
         super("challenges", userId);
         this.userId = userId;
         initChallenges();
+        updateSubscriptionCache(); // Initialize cache
         initUI();
     }
+
+    private void setupAutoRefreshTimer() {
+        refreshTimer = new javax.swing.Timer(5000, e -> {
+            if (hasSubscriptionBeenDeleted()) {
+                refreshChallenges();
+            }
+        });
+        refreshTimer.start();
+
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                if (refreshTimer != null) {
+                    refreshTimer.stop();
+                }
+            }
+        });
+    }
+
+
+    private void updateSubscriptionCache() {
+        lastKnownSubscriptionIds.clear();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "SELECT id FROM expenses WHERE user_id = ? AND category_id = 10";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    lastKnownSubscriptionIds.add(rs.getInt("id"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean hasSubscriptionBeenDeleted() {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "SELECT id FROM expenses WHERE user_id = ? AND category_id = 10";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                ResultSet rs = stmt.executeQuery();
+
+                // Check if any IDs from our cache are missing
+                Set<Integer> currentIds = new HashSet<>();
+                while (rs.next()) {
+                    currentIds.add(rs.getInt("id"));
+                }
+
+                for (Integer id : lastKnownSubscriptionIds) {
+                    if (!currentIds.contains(id)) {
+                        return true; // Subscription was deleted
+                    }
+                }
+
+                // Update our cache
+                lastKnownSubscriptionIds = currentIds;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void refreshChallenges() {
+        // Rebuild the UI
+        contentPanel.removeAll();
+        initChallenges();
+        initUI();
+        contentPanel.revalidate();
+        contentPanel.repaint();
+
+        // Update the cache
+        updateSubscriptionCache();
+    }
+
+
 
     private void initChallenges() {
         challenges = new ArrayList<>();
@@ -43,21 +128,6 @@ public class ChallengesPage extends BaseFrame {
                         "you'll unlock a special prize — because sometimes, doing <br>" +
                         "nothing is the most rewarding thing you can do!</html>",
                 this::checkNoSpendDay
-        ));
-        challenges.add(new Challenge(
-                "Cancel 1 Subscription",
-                "Cancel one unnecessary subscription service to win this badge.",
-                this::checkCancelSubscription
-        ));
-        challenges.add(new Challenge(
-                "Plan a Monthly Budget",
-                "Create and save a budget for the current month to win this badge.",
-                this::checkPlanMonthlyBudget
-        ));
-        challenges.add(new Challenge(
-                "Track All Expenses for a Week",
-                "Log every expense you make for 7 consecutive days to win this badge.",
-                this::checkTrackExpensesForWeek
         ));
 
         // Load badge paths and user progress
@@ -128,7 +198,9 @@ public class ChallengesPage extends BaseFrame {
         JScrollPane scrollPane = new JScrollPane(challengesPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         contentPanel.add(scrollPane, BorderLayout.CENTER);
+        setupAutoRefreshTimer();
     }
+
 
     private JPanel createChallengePanel(Challenge challenge) {
         JPanel panel = new JPanel(new BorderLayout());
@@ -162,10 +234,12 @@ public class ChallengesPage extends BaseFrame {
             startButton.setEnabled(false);
             claimButton.setEnabled(false);
             claimButton.setText("Claimed!");
-        } else if ("completed".equals(challenge.getStatus())) {
+        } else if (challenge.getCondition().run()) {
             startButton.setEnabled(false);
             claimButton.setEnabled(true);
         } else if ("in_progress".equals(challenge.getStatus())) {
+            claimButton.setEnabled(false);
+        } else {
             claimButton.setEnabled(false);
         }
 
@@ -175,7 +249,6 @@ public class ChallengesPage extends BaseFrame {
         badgeLabel.setOpaque(true);
         badgeLabel.setBackground(new Color(255, 255, 153)); // Yellow background
 
-        // Show badge if already claimed
         if ("claimed".equals(challenge.getStatus())) {
             ImageIcon icon = tryLoadIcon(challenge.getBadgePath());
             if (icon != null) {
@@ -186,13 +259,21 @@ public class ChallengesPage extends BaseFrame {
             badgeLabel.setVisible(false);
         }
 
-        startButton.addActionListener(e -> startChallenge(challenge, panel));
-        claimButton.addActionListener(e -> claimAward(challenge, badgeLabel, panel));
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        buttonPanel.setBackground(panel.getBackground());
+        // Declare buttonPanel as final to use it in listeners
+        final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        buttonPanel.setBackground(panel.getBackground()); // Match initial section color
         buttonPanel.add(startButton);
         buttonPanel.add(claimButton);
+
+        startButton.addActionListener(e -> {
+            startChallenge(challenge, panel);
+            buttonPanel.setBackground(panel.getBackground()); // Sync button panel color
+        });
+
+        claimButton.addActionListener(e -> {
+            claimAward(challenge, badgeLabel, panel);
+            buttonPanel.setBackground(panel.getBackground()); // Sync button panel color
+        });
 
         panel.add(nameLabel, BorderLayout.NORTH);
         panel.add(descriptionLabel, BorderLayout.CENTER);
@@ -231,14 +312,10 @@ public class ChallengesPage extends BaseFrame {
             panel.revalidate();
             panel.repaint();
 
-            if (challenge.getCondition().run()) {
-                completeChallenge(challenge, panel);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Challenge started! Complete the requirements to earn your badge.",
-                        "Challenge Begun",
-                        JOptionPane.INFORMATION_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(this,
+                    "Challenge started! Complete the requirements to earn your badge.",
+                    "Challenge Begun",
+                    JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this,
@@ -250,7 +327,9 @@ public class ChallengesPage extends BaseFrame {
 
     private void completeChallenge(Challenge challenge, JPanel panel) {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "UPDATE user_challenges SET status = 'completed', completion_date = CURDATE() " +
+            // In completeChallenge method
+            String sql = "UPDATE user_challenges SET status = 'completed', " +
+                    "completion_date = CURDATE() " +
                     "WHERE user_id = ? AND challenge_name = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
@@ -288,6 +367,14 @@ public class ChallengesPage extends BaseFrame {
     }
 
     private void claimAward(Challenge challenge, JLabel badgeLabel, JPanel panel) {
+        // First verify the challenge is actually completed
+        if (!challenge.getCondition().run()) {
+            JOptionPane.showMessageDialog(this,
+                    "You haven't completed this challenge yet!",
+                    "Not Completed",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         try (Connection conn = DatabaseConnection.getConnection()) {
             // Update database
             String sql = "UPDATE user_challenges SET status = 'claimed' " +
@@ -303,6 +390,16 @@ public class ChallengesPage extends BaseFrame {
             if (badgeIcon != null) {
                 // Play victory sound
                 playSound("resources/win_song.wav");
+
+                // In claimAward, before showing success message
+                if (!challenge.getCondition().run()) {
+                    panel.setBackground(new Color(255, 200, 200)); // Light red
+                    JOptionPane.showMessageDialog(this,
+                            "You haven't completed the challenge requirements yet!",
+                            "Not Completed",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
 
                 // Update the badge label in the panel
                 badgeLabel.setIcon(badgeIcon);
@@ -384,48 +481,53 @@ public class ChallengesPage extends BaseFrame {
     // Challenge condition check methods (keep your existing implementations)
     private boolean checkNoSpendDay() {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT DATE(expense_date) AS expense_date " +
-                    "FROM expenses WHERE user_id = ? ORDER BY expense_date ASC";
+            String sql = "SELECT DISTINCT DATE(expense_date) AS expense_date " +
+                    "FROM expenses WHERE user_id = ? " +
+                    "ORDER BY expense_date ASC";
+
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
                 ResultSet rs = stmt.executeQuery();
 
                 java.time.LocalDate previousDate = null;
+
                 while (rs.next()) {
                     java.time.LocalDate currentDate = rs.getDate("expense_date").toLocalDate();
+
                     if (previousDate != null) {
                         long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(previousDate, currentDate);
                         if (daysBetween > 1) {
-                            return true;
+                            return true; // Found a gap of at least one day
                         }
                     }
                     previousDate = currentDate;
                 }
-
-                if (previousDate == null || java.time.temporal.ChronoUnit.DAYS.between(previousDate, java.time.LocalDate.now()) >= 1) {
-                    return true;
-                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
+        return false; // No gap of at least one day found
     }
 
     private boolean checkCancelSubscription() {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT COUNT(*) FROM subscriptions WHERE user_id = ? AND status = 'canceled'";
+            // Find subscriptions that were in snapshot but no longer exist
+            String sql = "SELECT ss.expense_id " +
+                    "FROM subscription_snapshots ss " +
+                    "LEFT JOIN expenses e ON ss.expense_id = e.id " +
+                    "WHERE ss.user_id = ? " +
+                    "AND e.id IS NULL " +  // Record no longer exists
+                    "LIMIT 1";              // Only need one to qualify
+
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
                 ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    return rs.getInt(1) > 0;
-                }
+                return rs.next();  // True if any subscriptions were deleted
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     private boolean checkPlanMonthlyBudget() {

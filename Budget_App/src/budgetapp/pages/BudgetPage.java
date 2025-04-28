@@ -179,12 +179,13 @@ public class BudgetPage extends BaseFrame {
         }
     }
 
-    private void saveBudgetData() {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "INSERT INTO budget (user_id, month_year, income, needs_percent, wants_percent, savings_percent, budget_set) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, TRUE) " +
-                    "ON DUPLICATE KEY UPDATE income = ?, needs_percent = ?, wants_percent = ?, savings_percent = ?, budget_set = TRUE";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        private void saveBudgetData() {
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                String sql = "INSERT INTO budget (user_id, month_year, income, needs_percent, wants_percent, savings_percent, budget_set) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, TRUE) " +
+                        "ON DUPLICATE KEY UPDATE income = ?, needs_percent = ?, wants_percent = ?, savings_percent = ?, budget_set = TRUE";
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
                 stmt.setString(2, getSelectedMonthYear());
                 stmt.setDouble(3, Double.parseDouble(incomeField.getText()));
@@ -197,12 +198,31 @@ public class BudgetPage extends BaseFrame {
                 stmt.setDouble(10, Double.parseDouble(savingsField.getText()));
 
                 stmt.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Budget saved successfully for " + getSelectedMonthYear() + "!");
+                    // Check if this is current month's budget
+                    String currentMonthYear = LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault())
+                            + "-" + LocalDate.now().getYear();
+
+                    if (getSelectedMonthYear().equals(currentMonthYear)) {
+                        // Update challenge status if this is current month
+                        updateBudgetChallengeStatus(conn);
+                    }
+
+                    JOptionPane.showMessageDialog(this, "Budget saved successfully for " + getSelectedMonthYear() + "!");
+                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Error saving budget: " + e.getMessage());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Please enter valid numbers for all fields.");
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error saving budget: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Please enter valid numbers for all fields.");
+        }
+
+    private void updateBudgetChallengeStatus(Connection conn) throws SQLException {
+        String sql = "INSERT INTO user_challenges (user_id, challenge_name, status) " +
+                "VALUES (?, 'Plan a Monthly Budget', 'completed') " +
+                "ON DUPLICATE KEY UPDATE status = 'completed'";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
         }
     }
 
