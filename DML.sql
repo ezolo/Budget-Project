@@ -30,7 +30,4 @@ VALUES
 
 INSERT INTO badges (challenge_name, badge_image_path) 
 VALUES 
-('No Spend Day', 'resources/badges/No_Spend_Day_Badge.JPG'),
-('Cancel 1 Subscription', 'resources/badges/Subscription_Badge.JPG'),
-('Plan a Monthly Budget', 'resources/badges/Plan_Monthly_Budget.JPG'),
-('Track All Expenses for a Week', 'resources/badges/Track_Expenses_Badge.JPG');
+('No Spend Day', 'resources/badges/No_Spend_Day_Badge.JPG');
