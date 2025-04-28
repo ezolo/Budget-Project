@@ -13,8 +13,10 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -23,11 +25,13 @@ public class RecordsPage extends BaseFrame {
 	private JPanel headerPanel;
 	private JComboBox<String> monthComboBox;
 	private JComboBox<Integer> yearComboBox;
+	private JComboBox<String> categoryComboBox;
 
 	public RecordsPage(int userId) {
 		super("Records", userId);
 		initUI();
 	}
+
 	protected void initUI() {
 		contentPanel.setLayout(new BorderLayout());
 
@@ -50,7 +54,7 @@ public class RecordsPage extends BaseFrame {
 		topPanel.add(filterPanel, BorderLayout.CENTER);
 
 		// Add summary panel
-		headerPanel = createHeaderPanel(LocalDate.now().getMonth().name(), LocalDate.now().getYear());
+		headerPanel = createHeaderPanel(LocalDate.now().getMonth().name(), LocalDate.now().getYear(), "All Categories");
 		topPanel.add(headerPanel, BorderLayout.SOUTH);
 
 		// Add the combined top panel to the content panel
@@ -62,7 +66,7 @@ public class RecordsPage extends BaseFrame {
 		transactionsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		transactionsPanel.setBackground(Color.WHITE);
 
-		loadTransactions(LocalDate.now().getMonth().name(), LocalDate.now().getYear());
+		loadTransactions(LocalDate.now().getMonth().name(), LocalDate.now().getYear(), "All Categories");
 
 		JScrollPane scrollPane = new JScrollPane(transactionsPanel);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -71,30 +75,6 @@ public class RecordsPage extends BaseFrame {
 		// Footer Section
 		contentPanel.add(createFooterPanel(), BorderLayout.SOUTH);
 	}
-	/*
-	@Override
-	protected void initUI() {
-		contentPanel.setLayout(new BorderLayout());
-
-		// Filter Panel
-		JPanel filterPanel = createFilterPanel();
-		contentPanel.add(filterPanel, BorderLayout.NORTH);
-
-		// Transactions Section
-		transactionsPanel = new JPanel();
-		transactionsPanel.setLayout(new BoxLayout(transactionsPanel, BoxLayout.Y_AXIS));
-		transactionsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-		transactionsPanel.setBackground(Color.WHITE);
-
-		loadTransactions(LocalDate.now().getMonth().name(), LocalDate.now().getYear());
-
-		JScrollPane scrollPane = new JScrollPane(transactionsPanel);
-		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-		contentPanel.add(scrollPane, BorderLayout.CENTER);
-
-		// Footer Section
-		contentPanel.add(createFooterPanel(), BorderLayout.SOUTH);
-	}*/
 
 	private JPanel createFilterPanel() {
 		JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
@@ -114,25 +94,45 @@ public class RecordsPage extends BaseFrame {
 		yearComboBox = new JComboBox<>(years);
 		yearComboBox.setSelectedItem(currentYear);
 
+		// Category dropdown
+		List<String> categories = new ArrayList<>();
+		categories.add("All Categories");
+		try (Connection conn = DatabaseConnection.getConnection()) {
+			String sql = "SELECT name FROM categories ORDER BY name";
+			try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+				ResultSet rs = stmt.executeQuery();
+				while (rs.next()) {
+					categories.add(rs.getString("name"));
+				}
+			}
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(this, "Error loading categories: " + e.getMessage());
+		}
+		categoryComboBox = new JComboBox<>(categories.toArray(new String[0]));
+		categoryComboBox.setSelectedItem("All Categories");
+
 		// Load button
 		JButton loadButton = new JButton("Load");
 		loadButton.addActionListener(e -> {
 			String selectedMonth = (String) monthComboBox.getSelectedItem();
 			int selectedYear = (Integer) yearComboBox.getSelectedItem();
-			loadTransactions(selectedMonth, selectedYear);
-			refreshSummaryPanel(selectedMonth, selectedYear);
+			String selectedCategory = (String) categoryComboBox.getSelectedItem();
+			loadTransactions(selectedMonth, selectedYear, selectedCategory);
+			refreshSummaryPanel(selectedMonth, selectedYear, selectedCategory);
 		});
 
 		filterPanel.add(new JLabel("Select Month:"));
 		filterPanel.add(monthComboBox);
 		filterPanel.add(new JLabel("Year:"));
 		filterPanel.add(yearComboBox);
+		filterPanel.add(new JLabel("Category:"));
+		filterPanel.add(categoryComboBox);
 		filterPanel.add(loadButton);
 
 		return filterPanel;
 	}
 
-	private JPanel createHeaderPanel(String selectedMonth, int selectedYear) {
+	private JPanel createHeaderPanel(String selectedMonth, int selectedYear, String selectedCategory) {
 		JPanel headerPanel = new JPanel();
 		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
 		headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -142,8 +142,8 @@ public class RecordsPage extends BaseFrame {
 		summaryPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 		summaryPanel.setBackground(new Color(240, 240, 240));
 
-		double totalExpenses = getMonthlyTotal("expenses", selectedMonth, selectedYear);
-		double totalIncome = getMonthlyTotal("income", selectedMonth, selectedYear);
+		double totalExpenses = getMonthlyTotal("expenses", selectedMonth, selectedYear, selectedCategory);
+		double totalIncome = getMonthlyTotal("income", selectedMonth, selectedYear, selectedCategory);
 		double totalBalance = totalIncome - totalExpenses;
 
 		summaryPanel.add(createSummaryBox("Expenses", String.format("$%.2f", totalExpenses), Color.RED));
@@ -154,11 +154,15 @@ public class RecordsPage extends BaseFrame {
 		return headerPanel;
 	}
 
-	private double getMonthlyTotal(String type, String selectedMonth, int selectedYear) {
+	private double getMonthlyTotal(String type, String selectedMonth, int selectedYear, String selectedCategory) {
 		double total = 0.0;
-		String sql = "SELECT SUM(amount) FROM expenses " +
-				"WHERE user_id = ? AND type = ? " +
-				"AND MONTH(expense_date) = ? AND YEAR(expense_date) = ?";
+		String sql = "SELECT SUM(e.amount) FROM expenses e " +
+				"JOIN categories c ON e.category_id = c.id " +
+				"WHERE e.user_id = ? AND e.type = ? " +
+				"AND MONTH(e.expense_date) = ? AND YEAR(e.expense_date) = ?";
+		if (!selectedCategory.equals("All Categories")) {
+			sql += " AND c.name = ?";
+		}
 
 		try (Connection conn = DatabaseConnection.getConnection();
 			 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -166,6 +170,9 @@ public class RecordsPage extends BaseFrame {
 			stmt.setString(2, type.equals("expenses") ? "expense" : "income");
 			stmt.setInt(3, Month.valueOf(selectedMonth.toUpperCase()).getValue());
 			stmt.setInt(4, selectedYear);
+			if (!selectedCategory.equals("All Categories")) {
+				stmt.setString(5, selectedCategory);
+			}
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
 				total = rs.getDouble(1);
@@ -193,8 +200,7 @@ public class RecordsPage extends BaseFrame {
 
 		return footerPanel;
 	}
-
-	private void loadTransactions(String selectedMonth, int selectedYear) {
+	private void loadTransactions(String selectedMonth, int selectedYear, String selectedCategory) {
 		transactionsPanel.removeAll();
 		Map<String, JPanel> datePanels = new LinkedHashMap<>();
 
@@ -203,12 +209,19 @@ public class RecordsPage extends BaseFrame {
 					"FROM expenses e " +
 					"JOIN accounts a ON e.account_id = a.id " +
 					"JOIN categories c ON e.category_id = c.id " +
-					"WHERE e.user_id = ? AND MONTH(e.expense_date) = ? AND YEAR(e.expense_date) = ? " +
-					"ORDER BY e.expense_date DESC";
+					"WHERE e.user_id = ? AND MONTH(e.expense_date) = ? AND YEAR(e.expense_date) = ?";
+			if (!selectedCategory.equals("All Categories")) {
+				sql += " AND c.name = ?";
+			}
+			sql += " ORDER BY e.expense_date DESC";
+
 			try (PreparedStatement stmt = conn.prepareStatement(sql)) {
 				stmt.setInt(1, userId);
 				stmt.setInt(2, Month.valueOf(selectedMonth.toUpperCase()).getValue());
 				stmt.setInt(3, selectedYear);
+				if (!selectedCategory.equals("All Categories")) {
+					stmt.setString(4, selectedCategory);
+				}
 				ResultSet rs = stmt.executeQuery();
 				while (rs.next()) {
 					String date = rs.getString("expense_date");
@@ -345,16 +358,20 @@ public class RecordsPage extends BaseFrame {
 	private void refreshTransactions() {
 		String selectedMonth = (String) monthComboBox.getSelectedItem();
 		int selectedYear = (Integer) yearComboBox.getSelectedItem();
-		loadTransactions(selectedMonth, selectedYear);
-		refreshSummaryPanel(selectedMonth, selectedYear);
+		String selectedCategory = (String) categoryComboBox.getSelectedItem();
+		loadTransactions(selectedMonth, selectedYear, selectedCategory);
+		refreshSummaryPanel(selectedMonth, selectedYear, selectedCategory);
 	}
 
-	private void refreshSummaryPanel(String selectedMonth, int selectedYear) {
+	private void refreshSummaryPanel(String selectedMonth, int selectedYear, String selectedCategory) {
 		if (headerPanel != null) {
-			contentPanel.remove(headerPanel);
+			JPanel topPanel = (JPanel) headerPanel.getParent();
+			topPanel.remove(headerPanel);
 		}
-		headerPanel = createHeaderPanel(selectedMonth, selectedYear);
-		contentPanel.add(headerPanel, BorderLayout.NORTH);
+
+		headerPanel = createHeaderPanel(selectedMonth, selectedYear, selectedCategory);
+		JPanel topPanel = (JPanel) contentPanel.getComponent(0); // Get the topPanel
+		topPanel.add(headerPanel, BorderLayout.SOUTH);
 		contentPanel.revalidate();
 		contentPanel.repaint();
 	}
