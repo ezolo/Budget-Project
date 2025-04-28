@@ -11,27 +11,50 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class RecordsPage extends BaseFrame {
 	private JPanel transactionsPanel;
 	private JPanel headerPanel;
+	private JComboBox<String> monthComboBox;
+	private JComboBox<Integer> yearComboBox;
 
 	public RecordsPage(int userId) {
 		super("Records", userId);
 		initUI();
 	}
-
-	@Override
 	protected void initUI() {
 		contentPanel.setLayout(new BorderLayout());
 
-		// Header Section
-		headerPanel = createHeaderPanel();
-		contentPanel.add(headerPanel, BorderLayout.NORTH);
+		// Create a container for the banner, filter, and summary panels
+		JPanel topPanel = new JPanel();
+		topPanel.setLayout(new BorderLayout());
+
+		// Add green banner
+		JPanel bannerPanel = new JPanel(new BorderLayout());
+		bannerPanel.setBackground(new Color(0, 128, 0));
+		JLabel bannerLabel = new JLabel("Expenses");
+		bannerLabel.setForeground(Color.WHITE);
+		bannerLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+		bannerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		bannerPanel.add(bannerLabel, BorderLayout.CENTER);
+		topPanel.add(bannerPanel, BorderLayout.NORTH);
+
+		// Add filter panel
+		JPanel filterPanel = createFilterPanel();
+		topPanel.add(filterPanel, BorderLayout.CENTER);
+
+		// Add summary panel
+		headerPanel = createHeaderPanel(LocalDate.now().getMonth().name(), LocalDate.now().getYear());
+		topPanel.add(headerPanel, BorderLayout.SOUTH);
+
+		// Add the combined top panel to the content panel
+		contentPanel.add(topPanel, BorderLayout.NORTH);
 
 		// Transactions Section
 		transactionsPanel = new JPanel();
@@ -39,7 +62,7 @@ public class RecordsPage extends BaseFrame {
 		transactionsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		transactionsPanel.setBackground(Color.WHITE);
 
-		loadTransactions();
+		loadTransactions(LocalDate.now().getMonth().name(), LocalDate.now().getYear());
 
 		JScrollPane scrollPane = new JScrollPane(transactionsPanel);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -48,28 +71,79 @@ public class RecordsPage extends BaseFrame {
 		// Footer Section
 		contentPanel.add(createFooterPanel(), BorderLayout.SOUTH);
 	}
+	/*
+	@Override
+	protected void initUI() {
+		contentPanel.setLayout(new BorderLayout());
 
-	private JPanel createHeaderPanel() {
+		// Filter Panel
+		JPanel filterPanel = createFilterPanel();
+		contentPanel.add(filterPanel, BorderLayout.NORTH);
+
+		// Transactions Section
+		transactionsPanel = new JPanel();
+		transactionsPanel.setLayout(new BoxLayout(transactionsPanel, BoxLayout.Y_AXIS));
+		transactionsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+		transactionsPanel.setBackground(Color.WHITE);
+
+		loadTransactions(LocalDate.now().getMonth().name(), LocalDate.now().getYear());
+
+		JScrollPane scrollPane = new JScrollPane(transactionsPanel);
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		contentPanel.add(scrollPane, BorderLayout.CENTER);
+
+		// Footer Section
+		contentPanel.add(createFooterPanel(), BorderLayout.SOUTH);
+	}*/
+
+	private JPanel createFilterPanel() {
+		JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+		filterPanel.setBackground(new Color(220, 220, 220));
+
+		// Month dropdown
+		String[] months = new String[12];
+		for (int i = 0; i < 12; i++) {
+			months[i] = Month.of(i + 1).getDisplayName(TextStyle.FULL, Locale.getDefault());
+		}
+		monthComboBox = new JComboBox<>(months);
+		monthComboBox.setSelectedIndex(LocalDate.now().getMonthValue() - 1);
+
+		// Year dropdown
+		int currentYear = LocalDate.now().getYear();
+		Integer[] years = {currentYear - 2, currentYear - 1, currentYear};
+		yearComboBox = new JComboBox<>(years);
+		yearComboBox.setSelectedItem(currentYear);
+
+		// Load button
+		JButton loadButton = new JButton("Load");
+		loadButton.addActionListener(e -> {
+			String selectedMonth = (String) monthComboBox.getSelectedItem();
+			int selectedYear = (Integer) yearComboBox.getSelectedItem();
+			loadTransactions(selectedMonth, selectedYear);
+			refreshSummaryPanel(selectedMonth, selectedYear);
+		});
+
+		filterPanel.add(new JLabel("Select Month:"));
+		filterPanel.add(monthComboBox);
+		filterPanel.add(new JLabel("Year:"));
+		filterPanel.add(yearComboBox);
+		filterPanel.add(loadButton);
+
+		return filterPanel;
+	}
+
+	private JPanel createHeaderPanel(String selectedMonth, int selectedYear) {
 		JPanel headerPanel = new JPanel();
 		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
 		headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 		headerPanel.setBackground(new Color(240, 240, 240));
 
-		LocalDate currentDate = LocalDate.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM, yyyy");
-		String currentMonthYear = currentDate.format(formatter);
-
-		JLabel monthLabel = new JLabel(currentMonthYear, SwingConstants.CENTER);
-		monthLabel.setFont(new Font("Arial", Font.BOLD, 24));
-		monthLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-		headerPanel.add(monthLabel);
-
 		JPanel summaryPanel = new JPanel(new GridLayout(1, 3, 10, 10));
 		summaryPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 		summaryPanel.setBackground(new Color(240, 240, 240));
 
-		double totalExpenses = getMonthlyTotal("expenses");
-		double totalIncome = getMonthlyTotal("income");
+		double totalExpenses = getMonthlyTotal("expenses", selectedMonth, selectedYear);
+		double totalIncome = getMonthlyTotal("income", selectedMonth, selectedYear);
 		double totalBalance = totalIncome - totalExpenses;
 
 		summaryPanel.add(createSummaryBox("Expenses", String.format("$%.2f", totalExpenses), Color.RED));
@@ -80,17 +154,18 @@ public class RecordsPage extends BaseFrame {
 		return headerPanel;
 	}
 
-	private double getMonthlyTotal(String type) {
+	private double getMonthlyTotal(String type, String selectedMonth, int selectedYear) {
 		double total = 0.0;
 		String sql = "SELECT SUM(amount) FROM expenses " +
 				"WHERE user_id = ? AND type = ? " +
-				"AND MONTH(expense_date) = MONTH(CURRENT_DATE()) " +
-				"AND YEAR(expense_date) = YEAR(CURRENT_DATE())";
+				"AND MONTH(expense_date) = ? AND YEAR(expense_date) = ?";
 
 		try (Connection conn = DatabaseConnection.getConnection();
 			 PreparedStatement stmt = conn.prepareStatement(sql)) {
 			stmt.setInt(1, userId);
 			stmt.setString(2, type.equals("expenses") ? "expense" : "income");
+			stmt.setInt(3, Month.valueOf(selectedMonth.toUpperCase()).getValue());
+			stmt.setInt(4, selectedYear);
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
 				total = rs.getDouble(1);
@@ -119,7 +194,7 @@ public class RecordsPage extends BaseFrame {
 		return footerPanel;
 	}
 
-	private void loadTransactions() {
+	private void loadTransactions(String selectedMonth, int selectedYear) {
 		transactionsPanel.removeAll();
 		Map<String, JPanel> datePanels = new LinkedHashMap<>();
 
@@ -128,14 +203,15 @@ public class RecordsPage extends BaseFrame {
 					"FROM expenses e " +
 					"JOIN accounts a ON e.account_id = a.id " +
 					"JOIN categories c ON e.category_id = c.id " +
-					"WHERE e.user_id = ? " +
+					"WHERE e.user_id = ? AND MONTH(e.expense_date) = ? AND YEAR(e.expense_date) = ? " +
 					"ORDER BY e.expense_date DESC";
 			try (PreparedStatement stmt = conn.prepareStatement(sql)) {
 				stmt.setInt(1, userId);
+				stmt.setInt(2, Month.valueOf(selectedMonth.toUpperCase()).getValue());
+				stmt.setInt(3, selectedYear);
 				ResultSet rs = stmt.executeQuery();
 				while (rs.next()) {
 					String date = rs.getString("expense_date");
-					System.out.println("date" + date);
 					JPanel datePanel = datePanels.computeIfAbsent(date, d -> createDatePanel(d));
 					datePanel.add(createTransactionPanel(
 							rs.getInt("id"),
@@ -149,7 +225,6 @@ public class RecordsPage extends BaseFrame {
 				}
 			}
 		} catch (SQLException e) {
-			System.out.println("Error loading transactions: " + e.getMessage());
 			JOptionPane.showMessageDialog(this, "Error loading transactions: " + e.getMessage());
 		}
 		datePanels.values().forEach(transactionsPanel::add);
@@ -266,20 +341,20 @@ public class RecordsPage extends BaseFrame {
 		panel.add(valueLabel);
 		return panel;
 	}
+
 	private void refreshTransactions() {
-		loadTransactions();
-		refreshSummaryPanel();
+		String selectedMonth = (String) monthComboBox.getSelectedItem();
+		int selectedYear = (Integer) yearComboBox.getSelectedItem();
+		loadTransactions(selectedMonth, selectedYear);
+		refreshSummaryPanel(selectedMonth, selectedYear);
 	}
 
-	private void refreshSummaryPanel() {
-//		double totalExpenses = getMonthlyTotal("expenses");
-//		double totalIncome = getMonthlyTotal("income");
-//		double totalBalance = totalIncome - totalExpenses;
-
-
-		contentPanel.remove(headerPanel); // Remove the old header panel
-		headerPanel = createHeaderPanel();
-		contentPanel.add(headerPanel, BorderLayout.NORTH); // Add the new header panel
+	private void refreshSummaryPanel(String selectedMonth, int selectedYear) {
+		if (headerPanel != null) {
+			contentPanel.remove(headerPanel);
+		}
+		headerPanel = createHeaderPanel(selectedMonth, selectedYear);
+		contentPanel.add(headerPanel, BorderLayout.NORTH);
 		contentPanel.revalidate();
 		contentPanel.repaint();
 	}
@@ -325,5 +400,4 @@ public class RecordsPage extends BaseFrame {
 		}
 		return new ImageIcon(icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
 	}
-
 }

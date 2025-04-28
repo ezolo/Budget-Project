@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class AddRecordPage extends JFrame {
     private final int userId;
     private final Runnable refreshCallback;
