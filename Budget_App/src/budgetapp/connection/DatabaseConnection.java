@@ -13,7 +13,7 @@ public class DatabaseConnection
     {
         String dbURL = "jdbc:mysql://localhost:3306/budget_management";
         String username = "root";
-        String password = "Positive:31";
+        String password = "password";
         Connection connection = DriverManager.getConnection(dbURL, username, password);
         return connection;
     }

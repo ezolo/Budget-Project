@@ -72,7 +72,7 @@ public class MenuUtilities
                 new RecordsPage(userId);
                 break;
             case "subscriptions":
-            	SubscriptionPage.showSubscriptionPanel(userId);
+                new SubscriptionPage(userId, null);
                 break;
             case "categories":
                 new CategoriesPage(userId);

@@ -355,7 +355,7 @@ public class RecordsPage extends BaseFrame {
 		return panel;
 	}
 
-	private void refreshTransactions() {
+	public void refreshTransactions() {
 		String selectedMonth = (String) monthComboBox.getSelectedItem();
 		int selectedYear = (Integer) yearComboBox.getSelectedItem();
 		String selectedCategory = (String) categoryComboBox.getSelectedItem();
