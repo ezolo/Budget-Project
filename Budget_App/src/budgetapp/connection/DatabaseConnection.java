@@ -14,6 +14,7 @@ public static Connection getConnection() throws SQLException
 String dbURL = "jdbc:mysql://localhost:3306/budget_management";
 String username = "root";
 String password = "sqlpassword";
+
 Connection connection = DriverManager.getConnection(dbURL, username, password);
 return connection;
 }

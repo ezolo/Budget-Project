@@ -22,12 +22,16 @@ CREATE TABLE categories (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 ALTER TABLE categories ADD COLUMN is_custom_image BOOLEAN DEFAULT FALSE;
+ALTER TABLE categories ADD COLUMN description VARCHAR(255) DEFAULT NULL;
+ALTER TABLE categories ADD COLUMN is_essential BOOLEAN DEFAULT FALSE;
+ALTER TABLE categories 
+ADD CONSTRAINT uc_user_category UNIQUE (user_id, name);
 
 -- ACCOUNTS table
 CREATE TABLE IF NOT EXISTS accounts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
-    name VARCHAR(100),
+    account_name VARCHAR(100),
     balance DECIMAL(10, 2),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -41,6 +45,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     expense_date DATE,
     month VARCHAR(20), -- e.g., 'April 2025'
     amount DECIMAL(10, 2),
+    type VARCHAR(45),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (account_id) REFERENCES accounts(id),
     FOREIGN KEY (category_id) REFERENCES categories(id)
