@@ -205,7 +205,7 @@ public class RecordsPage extends BaseFrame {
 		Map<String, JPanel> datePanels = new LinkedHashMap<>();
 
 		try (Connection conn = DatabaseConnection.getConnection()) {
-			String sql = "SELECT e.id, e.expense_date, a.account_name, e.amount, e.description, c.name AS category_name, c.image_path " +
+			String sql = "SELECT e.id, e.expense_date, a.account_name, e.amount, e.description, c.name AS category_name, c.image_path, e.type " +
 					"FROM expenses e " +
 					"JOIN accounts a ON e.account_id = a.id " +
 					"JOIN categories c ON e.category_id = c.id " +
@@ -233,7 +233,8 @@ public class RecordsPage extends BaseFrame {
 							rs.getString("amount"),
 							rs.getString("description"),
 							rs.getString("category_name"),
-							rs.getString("image_path")
+							rs.getString("image_path"),
+							rs.getString("type") // Pass the type here
 					));
 				}
 			}
@@ -259,7 +260,38 @@ public class RecordsPage extends BaseFrame {
 		return datePanel;
 	}
 
-	private JPanel createTransactionPanel(int id, String date, String account, String amount, String description, String categoryName, String imagePath) {
+
+	private JPanel createTransactionPanel(int id, String date, String account, String amount, String description, String categoryName, String imagePath, String type) {
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+				new EmptyBorder(10, 10, 10, 10)
+		));
+		panel.setBackground(Color.WHITE);
+
+		JLabel imageLabel = new JLabel();
+		ImageIcon icon = loadCategoryIcon(categoryName.toLowerCase());
+		if (icon != null) {
+			imageLabel.setIcon(icon);
+		} else {
+			imageLabel.setText("No Image");
+		}
+		imageLabel.setPreferredSize(new Dimension(50, 50));
+		panel.add(imageLabel, BorderLayout.WEST);
+
+		// Set amount color based on type
+		Color amountColor = "income".equalsIgnoreCase(type) ? new Color(34, 139, 34) : Color.RED;
+
+		JLabel detailsLabel = new JLabel("<html>" + date + " | " + account + " | " + categoryName + " | <span style='color: " + (amountColor == Color.RED ? "red" : "green") + "'>$" + amount + "</span><br>Description: " + description + "</html>");
+		detailsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+		panel.add(detailsLabel, BorderLayout.CENTER);
+
+		JPanel buttonsPanel = createButtonsPanel(id);
+		panel.add(buttonsPanel, BorderLayout.EAST);
+
+		return panel;
+	}
+	/*private JPanel createTransactionPanel(int id, String date, String account, String amount, String description, String categoryName, String imagePath) {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
@@ -285,7 +317,7 @@ public class RecordsPage extends BaseFrame {
 		panel.add(buttonsPanel, BorderLayout.EAST);
 
 		return panel;
-	}
+	}*/
 
 	private JPanel createButtonsPanel(int id) {
 		JPanel buttonsPanel = new JPanel();

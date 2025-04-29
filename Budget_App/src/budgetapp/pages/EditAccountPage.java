@@ -16,7 +16,6 @@ public class EditAccountPage extends JFrame {
     private final Runnable refreshCallback;
     private final JComboBox<String> accountDropdown;
     private final JTextField nameField;
-    private final JTextField balanceField;
     private final Map<String, Integer> accountIdMap;
 
     public EditAccountPage(int userId, Runnable refreshCallback) {
@@ -25,24 +24,21 @@ public class EditAccountPage extends JFrame {
         this.accountIdMap = new HashMap<>();
         this.accountDropdown = new JComboBox<>();
         this.nameField = new JTextField();
-        this.balanceField = new JTextField();
         initializeUI();
         loadAccounts();
     }
 
     private void initializeUI() {
         setTitle("Edit Account");
-        setSize(400, 300);
+        setSize(400, 200);
         setLayout(new BorderLayout());
 
         // Form panel
-        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        JPanel formPanel = new JPanel(new GridLayout(2, 2, 5, 5));
         formPanel.add(new JLabel("Select Account:"));
         formPanel.add(accountDropdown);
         formPanel.add(new JLabel("Account Name:"));
         formPanel.add(nameField);
-        formPanel.add(new JLabel("Account Balance:"));
-        formPanel.add(balanceField);
 
         // Add listeners
         accountDropdown.addActionListener(e -> loadAccountDetails());
@@ -81,13 +77,12 @@ public class EditAccountPage extends JFrame {
 
         int accountId = accountIdMap.get(selectedAccount);
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT account_name, balance FROM accounts WHERE id = ?";
+            String sql = "SELECT account_name FROM accounts WHERE id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, accountId);
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
                     nameField.setText(rs.getString("account_name"));
-                    balanceField.setText(String.valueOf(rs.getDouble("balance")));
                 }
             }
         } catch (SQLException e) {
@@ -101,29 +96,22 @@ public class EditAccountPage extends JFrame {
 
         int accountId = accountIdMap.get(selectedAccount);
         String newName = nameField.getText().trim();
-        String newBalanceStr = balanceField.getText().trim();
 
-        if (newName.isEmpty() || newBalanceStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Account name and balance cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+        if (newName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Account name cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        try {
-            double newBalance = Double.parseDouble(newBalanceStr);
-            try (Connection conn = DatabaseConnection.getConnection()) {
-                String sql = "UPDATE accounts SET account_name = ?, balance = ? WHERE id = ?";
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setString(1, newName);
-                    stmt.setDouble(2, newBalance);
-                    stmt.setInt(3, accountId);
-                    stmt.executeUpdate();
-                }
-                JOptionPane.showMessageDialog(this, "Account updated successfully!");
-                refreshCallback.run(); // Refresh the accounts list
-                dispose(); // Close the form
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "UPDATE accounts SET account_name = ? WHERE id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, newName);
+                stmt.setInt(2, accountId);
+                stmt.executeUpdate();
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Invalid balance. Please enter a numeric value.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Account updated successfully!");
+            refreshCallback.run(); // Refresh the accounts list
+            dispose(); // Close the form
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error updating account: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
