@@ -9,13 +9,15 @@ import java.awt.*;
 //This section establishes connection with our MySQL databases!
 public class DatabaseConnection
 {
-    public static Connection getConnection() throws SQLException
-    {
-        String dbURL = "jdbc:mysql://localhost:3306/budget_management";
-        String username = "root";
-        String password = "password";
-        Connection connection = DriverManager.getConnection(dbURL, username, password);
-        return connection;
-    }
+public static Connection getConnection() throws SQLException
+{
+String dbURL = "jdbc:mysql://localhost:3306/budget_management";
+String username = "root";
+String password = "sqlpassword";
+
+Connection connection = DriverManager.getConnection(dbURL, username, password);
+return connection;
+}
 
 }
+ 
