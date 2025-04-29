@@ -1,6 +1,5 @@
 //Importing packages for application
 package budgetapp.connection;
-
 import java.sql.*;
 import javax.swing.*;
 import javax.swing.table.*;
@@ -13,7 +12,7 @@ public class DatabaseConnection
     {
         String dbURL = "jdbc:mysql://localhost:3306/budget_management";
         String username = "root";
-        String password = "password";
+        String password = "Filipio2008$";
         Connection connection = DriverManager.getConnection(dbURL, username, password);
         return connection;
     }

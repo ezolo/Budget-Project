@@ -1,5 +1,5 @@
+//packages for budgetapp
 package budgetapp.pages;
-
 import javax.swing.*;
 import java.awt.*;
 import java.sql.Connection;
@@ -12,38 +12,48 @@ import java.time.format.TextStyle;
 import java.util.Locale;
 import budgetapp.connection.DatabaseConnection;
 
+//This class represents the Budget Page where users can manage their monthly budget
 public class BudgetPage extends BaseFrame {
+    //Input fields for income and budget percentages
     private JTextField incomeField, needsField, wantsField, savingsField;
+    //Labels to display calculated budget amounts
     private JLabel needsAmountLabel, wantsAmountLabel, savingsAmountLabel;
+    //Dropdowns for selecting month and year
     private JComboBox<String> monthComboBox;
     private JComboBox<Integer> yearComboBox;
+    //ID of the logged-in user
     private int userId;
+    //Panel for month and year selection
     private JPanel monthSelectionPanel;
 
+    //Constructor to initialize the Budget Page with the user ID
     public BudgetPage(int userId) {
         super("Budget", userId);
         this.userId = userId;
+        //Initialize the UI components
         initUI();
+        //Load budget data for the current month and year
         loadBudgetData();
     }
 
     @Override
+    //Set up the main content panel
     protected void initUI() {
         contentPanel.setBackground(new Color(242, 243, 247));
         contentPanel.setLayout(new BorderLayout());
 
-        // Create the green banner
+        //Create the green banner at the top
         JPanel bannerPanel = new JPanel(new BorderLayout());
         bannerPanel.setBackground(new Color(0, 128, 0));
 
-        // Month selection panel (light gray)
+        //Create the month selection panel
         monthSelectionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         monthSelectionPanel.setBackground(new Color(220, 220, 220));
 
-        // Month dropdown
+        //Populate the month dropdown with all months
         String[] months = new String[12];
         for (int i = 0; i < 12; i++) {
-            months[i] = Month.of(i+1).getDisplayName(TextStyle.FULL, Locale.getDefault());
+            months[i] = Month.of(i + 1).getDisplayName(TextStyle.FULL, Locale.getDefault());
         }
         monthComboBox = new JComboBox<>(months);
         monthComboBox.setSelectedIndex(LocalDate.now().getMonthValue() - 1);
@@ -53,7 +63,7 @@ public class BudgetPage extends BaseFrame {
         yearComboBox = new JComboBox<>(years);
         yearComboBox.setSelectedItem(LocalDate.now().getYear());
 
-        // Add month/year selection to panel
+        //Add components to the month selection panel
         monthSelectionPanel.add(new JLabel("Select Month:"));
         monthSelectionPanel.add(monthComboBox);
         monthSelectionPanel.add(new JLabel("Year:"));
@@ -64,16 +74,17 @@ public class BudgetPage extends BaseFrame {
         refreshButton.addActionListener(e -> loadBudgetData());
         monthSelectionPanel.add(refreshButton);
 
-        // Title label
+        //Create the title label for the banner
         JLabel bannerLabel = new JLabel("Budget");
         bannerLabel.setForeground(Color.WHITE);
         bannerLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
         bannerLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        // Add components to banner panel
+        //Add components to the banner panel// Add components to banner panel
         bannerPanel.add(bannerLabel, BorderLayout.CENTER);
         bannerPanel.add(monthSelectionPanel, BorderLayout.SOUTH);
 
+        //Add the banner panel to the top of the content panel
         contentPanel.add(bannerPanel, BorderLayout.NORTH);
 
         // Create a panel for the form and set its layout
@@ -180,12 +191,12 @@ public class BudgetPage extends BaseFrame {
     }
 
 
-        private void saveBudgetData() {
-            try (Connection conn = DatabaseConnection.getConnection()) {
-                String sql = "INSERT INTO budget (user_id, month_year, income, needs_percent, wants_percent, savings_percent, budget_set) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, TRUE) " +
-                        "ON DUPLICATE KEY UPDATE income = ?, needs_percent = ?, wants_percent = ?, savings_percent = ?, budget_set = TRUE";
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+    private void saveBudgetData() {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "INSERT INTO budget (user_id, month_year, income, needs_percent, wants_percent, savings_percent, budget_set) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, TRUE) " +
+                    "ON DUPLICATE KEY UPDATE income = ?, needs_percent = ?, wants_percent = ?, savings_percent = ?, budget_set = TRUE";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, userId);
                 stmt.setString(2, getSelectedMonthYear());
                 stmt.setDouble(3, Double.parseDouble(incomeField.getText()));
@@ -198,23 +209,23 @@ public class BudgetPage extends BaseFrame {
                 stmt.setDouble(10, Double.parseDouble(savingsField.getText()));
 
                 stmt.executeUpdate();
-                    // Check if this is current month's budget
-                    String currentMonthYear = LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault())
-                            + "-" + LocalDate.now().getYear();
+                // Check if this is current month's budget
+                String currentMonthYear = LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault())
+                        + "-" + LocalDate.now().getYear();
 
-                    if (getSelectedMonthYear().equals(currentMonthYear)) {
-                        // Update challenge status if this is current month
-                        updateBudgetChallengeStatus(conn);
-                    }
-
-                    JOptionPane.showMessageDialog(this, "Budget saved successfully for " + getSelectedMonthYear() + "!");
+                if (getSelectedMonthYear().equals(currentMonthYear)) {
+                    // Update challenge status if this is current month
+                    updateBudgetChallengeStatus(conn);
                 }
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Error saving budget: " + e.getMessage());
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Please enter valid numbers for all fields.");
+
+                JOptionPane.showMessageDialog(this, "Budget saved successfully for " + getSelectedMonthYear() + "!");
             }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error saving budget: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter valid numbers for all fields.");
         }
+    }
 
     private void updateBudgetChallengeStatus(Connection conn) throws SQLException {
         String sql = "INSERT INTO user_challenges (user_id, challenge_name, status) " +

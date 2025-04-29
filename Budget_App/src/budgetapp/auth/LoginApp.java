@@ -1,5 +1,5 @@
+//Importing necessary packages
 package budgetapp.auth;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,89 +7,101 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-
 import budgetapp.components.*;
 import budgetapp.connection.DatabaseConnection;
 import budgetapp.pages.RecordsPage;
 import budgetapp.pages.RegisterPage;
-
 import javax.swing.*;
 import java.awt.*;
 
-
-//This is where we set up the GUI & event handlers for Login page
+//Define the LoginApp class, which extendsJFrame to create a GUI window
 	public class LoginApp extends JFrame 
 	{
-		//private JTextField usernameField;
-		//private JPasswordField passwordField;
+		//Declare UI components and variables
+        //Custom text field for username
 		private LineTextField usernameField;
+        //Custom password field
 		private LinePasswordField passwordField;
+        //Label to display username error messages
 		private JLabel usernameError;
+        //Label to display password error messages
 	    private JLabel passwordError;
-	    public static int user_id;
-	    
-	    public static int getUserId() {
+	    //Static variable to store the logged-in user's ID
+        public static int user_id;
+	    //Gets the user_id
+	    public static int getUserId()
+        {
 	       return user_id;
 	    }
-
+//Constructor to set up the login page
   public LoginApp() 
   {
-  	//Setting name, size, and layout of page
+  	//Setting window properties
       setTitle("Login");
       setSize(350, 400);
       setDefaultCloseOperation(EXIT_ON_CLOSE);
-      //New next 2 lines
+      //Center the window
       setLocationRelativeTo(null);
+      //Use absolute positioning
       setLayout(null);
-      //setLayout(new GridLayout(4, 1));
       
-      //Color of Container (new next 2 lines)
+      //Set background color
       Container cp = getContentPane();
 		cp.setBackground(Color.WHITE);
 
-		usernameField = new LineTextField("Username");
+        //Initialize and add the username field
+        usernameField = new LineTextField("Username");
       usernameField.setBounds(50, 50, 250, 40);
       add(usernameField);
 
+      //Initialize and add the password field
       passwordField = new LinePasswordField("Password");
       passwordField.setBounds(50, 110, 250, 40);
       add(passwordField);
     
-    
-   // Replace your current eye toggle button code with this:
+      //Add an eye toggle button to show/hide the password
       JButton eyeToggle = new JButton("👁");
-      eyeToggle.setBounds(285, 112, 40, 40); // Slightly larger for visibility
-      eyeToggle.setBackground(Color.WHITE);  // Match your container's background
+      eyeToggle.setBounds(285, 112, 40, 40);
+      eyeToggle.setBackground(Color.WHITE);
       eyeToggle.setOpaque(true);   
       eyeToggle.setFocusable(false);
       eyeToggle.setBorderPainted(false); 
       eyeToggle.setBorder(BorderFactory.createEmptyBorder()); 
 
-   // Action Listener
-      eyeToggle.addActionListener(e -> {
-          if (passwordField.getEchoChar() == '•') {
-              passwordField.setEchoChar((char) 0);  // Show password
-              eyeToggle.setText("👁"); // Lock icon
-          } else {
-              passwordField.setEchoChar('•');       // Hide password
-              eyeToggle.setText("👁"); // Eye icon
+   //Add action listener to toggle password visibility
+      eyeToggle.addActionListener(e ->
+      {
+          if (passwordField.getEchoChar() == '•')
+          {
+              //Show Password
+              passwordField.setEchoChar((char) 0);
+              //Lock Icon
+              eyeToggle.setText("👁");
+          }
+          else
+          {
+              //Hide Password
+              passwordField.setEchoChar('•');
+              eyeToggle.setText("👁");
           }
       });
       
-      // Add it to the frame RIGHT AFTER password field
+      //Add eye toggle button to the frame
       add(passwordField);
       add(eyeToggle);
 
-      // Force UI refresh
+      //Force UI refresh
       revalidate();
       repaint(); 
-      
+
+      //Add a login button
       JButton loginButton = new JButton("Login");
       loginButton.setBounds(50, 190, 250, 35);
       loginButton.setBackground(new Color(0, 127, 255));
       loginButton.setForeground(Color.WHITE);
       add(loginButton);
-      
+
+      //Add a register button to navigate to the registration page
       JButton registerButton = new JButton("<HTML><U>Create an  Account</U></HTML>");
       registerButton.setHorizontalAlignment(SwingConstants.LEFT);
       registerButton.setBorderPainted(false);
@@ -100,6 +112,7 @@ import java.awt.*;
       registerButton.setBounds(105, 220, 250, 35);
       add(registerButton);
 
+      //Add labels for error messages
       usernameError = new JLabel(" ");
       usernameError.setForeground(Color.RED);
       usernameError.setBounds(50, 90, 250, 15);
@@ -109,77 +122,93 @@ import java.awt.*;
       passwordError.setForeground(Color.RED);
       passwordError.setBounds(50, 150, 250, 15);
       add(passwordError);
-		
+
+      //Add action listeners for login and register buttons
       loginButton.addActionListener(e -> Login());
       registerButton.addActionListener(e -> 
       {
+          //Close the login window
           dispose();
+          //Open the registration page
           new RegisterPage();
       });
+      //Make the frame visible
       setVisible(true);
   }
-   
- 
 
-  //Setting up how login credentials are checked on DB end
-  private void Login() {
+  //Method to handle login logic
+  private void Login()
+  {
 	    // Clear previous error messages
 	    usernameError.setText("");
 	    passwordError.setText("");
 
-	    // Get the user inputs
+	    //Get the user inputs
 	    String username = usernameField.getText().trim();
 	    String password = String.valueOf(passwordField.getPassword()).trim();
 
-	    // Validate fields
+	    //Validate input fields
 	    boolean hasError = false;
 	    
-	 // To this (more robust check):
-	    if (username.isEmpty() || usernameField.isPlaceholderActive()) {
+	 //Check if username is empty or placeholder is active
+	    if (username.isEmpty() || usernameField.isPlaceholderActive())
+        {
 	        usernameError.setText("Please enter your username.");
 	        hasError = true;
 	    }
 	    
-	 // To this (more robust check):
-	    if (username.isEmpty() || usernameField.isPlaceholderActive()) {
+	 //Check if password is empty or placeholder is active
+	    if (username.isEmpty() || usernameField.isPlaceholderActive())
+        {
 	        passwordError.setText("Please enter your password.");
 	        hasError = true;
 	    }
 
+        //Stop execution if there are validation errors
 	    if (hasError) return;
-	    
-	    try (Connection conn = DatabaseConnection.getConnection()) {
-	        // FIRST: Check if username exists
+
+        //Attempt to connect to the database and validate credentials
+	    try (Connection conn = DatabaseConnection.getConnection())
+        {
+	        //Check if the username exists in the database
 	    	PreparedStatement userStmt = conn.prepareStatement("SELECT * FROM users WHERE BINARY username=?");
 	        userStmt.setString(1, username);
 	        ResultSet userRs = userStmt.executeQuery();
 
-	        if (!userRs.next()) {
+            //If username is not found, show an error
+	        if (!userRs.next())
+            {
 	            usernameError.setText("Username not found.");
 	            usernameField.requestFocus();
 	            return;
 	        }
 
-	        // SECOND: Verify password (in a real app, use password hashing!)
+	        //Verify the password
 	        String dbPassword = userRs.getString("password");
-	        if (!dbPassword.equals(password)) {
+	        if (!dbPassword.equals(password))
+            {
 	            passwordError.setText("Invalid password.");
 	            passwordField.setText("");
 	            passwordField.requestFocus();
 	            return;
 	        }
 
-	        // Only if both checks pass
+	        //If both checks pass, retrieve the user ID and proceed
 	        int userId = userRs.getInt("id");
 	        JOptionPane.showMessageDialog(this, "Login successful!");
-	        dispose();
-	       // new RecordsPage(user_id);
-	        
-	        SwingUtilities.invokeLater(() -> {
-	        	 new RecordsPage(userId);  // Center on screen
+	        //Close login window
+            dispose();
+
+	        //Open the records page for the logged-in user
+	        SwingUtilities.invokeLater(() ->
+            {
+	        	 new RecordsPage(userId);
 	        });
 	        
-	    } catch (Exception e) {
+	    }
+        catch (Exception e)
+        {
+            //Handle database errors
 	        e.printStackTrace();
 	        JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage());
 	    }
@@ -191,4 +220,3 @@ import java.awt.*;
       new LoginApp();
   }
 }
-	
