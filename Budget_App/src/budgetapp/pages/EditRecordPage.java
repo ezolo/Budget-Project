@@ -18,6 +18,7 @@ public class EditRecordPage extends JFrame {
     private final Runnable refreshCallback;
     private final JComboBox<String> accountDropdown;
     private final JComboBox<String> categoryDropdown;
+    private final JComboBox<String> typeDropdown;
     private final Map<String, Integer> accountIdMap;
     private final Map<String, Integer> categoryIdMap;
 
@@ -33,18 +34,19 @@ public class EditRecordPage extends JFrame {
         this.categoryIdMap = new HashMap<>();
         this.accountDropdown = new JComboBox<>();
         this.categoryDropdown = new JComboBox<>();
+        this.typeDropdown = new JComboBox<>(new String[]{"Expense", "Income"});
         this.dateChooser = new JDateChooser();
         this.amountField = new JTextField();
         this.descriptionField = new JTextField();
 
         initializeUI();
         loadRecordDetails();
-    }
+        }
 
     private void initializeUI() {
         setTitle("Edit Record");
-        setSize(400, 350);
-        setLayout(new GridLayout(7, 2, 5, 5));
+        setSize(400, 400);
+        setLayout(new GridLayout(8, 2, 5, 5));
 
         dateChooser.setDateFormatString("yyyy-MM-dd");
 
@@ -54,6 +56,8 @@ public class EditRecordPage extends JFrame {
         add(accountDropdown);
         add(new JLabel("Amount:"));
         add(amountField);
+        add(new JLabel("Type:"));
+        add(typeDropdown);
         add(new JLabel("Category:"));
         add(categoryDropdown);
         add(new JLabel("Description:"));
@@ -73,7 +77,7 @@ public class EditRecordPage extends JFrame {
 
     private void loadRecordDetails() {
         try (Connection conn = DatabaseConnection.getConnection()) {
-            String sql = "SELECT e.expense_date, e.account_id, e.amount, e.description, e.category_id " +
+            String sql = "SELECT e.expense_date, e.account_id, e.amount, e.description, e.category_id, e.type " +
                     "FROM expenses e WHERE e.id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, recordId);
@@ -82,6 +86,7 @@ public class EditRecordPage extends JFrame {
                     dateChooser.setDate(rs.getDate("expense_date"));
                     amountField.setText(rs.getString("amount"));
                     descriptionField.setText(rs.getString("description"));
+                    typeDropdown.setSelectedItem(rs.getString("type"));
 
                     loadAccounts(conn, rs.getInt("account_id"));
                     loadCategories(conn, rs.getInt("category_id"));
@@ -131,10 +136,11 @@ public class EditRecordPage extends JFrame {
         String date = ((JTextField) dateChooser.getDateEditor().getUiComponent()).getText().trim();
         String account = (String) accountDropdown.getSelectedItem();
         String amount = amountField.getText().trim();
+        String type = (String) typeDropdown.getSelectedItem();
         String category = (String) categoryDropdown.getSelectedItem();
         String description = descriptionField.getText().trim();
 
-        if (date.isEmpty() || account == null || amount.isEmpty() || category == null || description.isEmpty()) {
+        if (date.isEmpty() || account == null || amount.isEmpty() || type == null || category == null || description.isEmpty()) {
             JOptionPane.showMessageDialog(this, "All fields are required.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -145,14 +151,15 @@ public class EditRecordPage extends JFrame {
             int categoryId = categoryIdMap.get(category);
 
             try (Connection conn = DatabaseConnection.getConnection()) {
-                String sql = "UPDATE expenses SET expense_date = ?, account_id = ?, amount = ?, description = ?, category_id = ? WHERE id = ?";
+                String sql = "UPDATE expenses SET expense_date = ?, account_id = ?, amount = ?, type = ?, description = ?, category_id = ? WHERE id = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                     stmt.setString(1, date);
                     stmt.setInt(2, accountId);
                     stmt.setDouble(3, amountValue);
-                    stmt.setString(4, description);
-                    stmt.setInt(5, categoryId);
-                    stmt.setInt(6, recordId);
+                    stmt.setString(4, type);
+                    stmt.setString(5, description);
+                    stmt.setInt(6, categoryId);
+                    stmt.setInt(7, recordId);
                     stmt.executeUpdate();
                 }
                 JOptionPane.showMessageDialog(this, "Record updated successfully!");
