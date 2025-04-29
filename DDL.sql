@@ -75,6 +75,7 @@ CREATE TABLE subscriptions (
     cost DOUBLE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+ALTER TABLE subscriptions ADD COLUMN icon VARCHAR(100);
 
 -- CHALLENGES table
 CREATE TABLE IF NOT EXISTS user_challenges (
