@@ -49,7 +49,7 @@
 #### Section #2 - Transaction History
 >When you login to app successfully, you are welcomed by the transaction history page. In this section, users can enter all of their expenses and income they had over the past few months/years. Once this information is entered, users can organize their records by filtering by each expense category to see which expense they spend most on. 
 >![](https://github.com/user-attachments/assets/e23c4c4c-a721-4cfd-af2b-c9f1289f5588)
->![](https://github.com/user-attachments/assets/74baff31-ab45-464e-80d2-226d6890c840)
+>![]((https://github.com/user-attachments/assets/7e07fb12-ba9e-4ba9-8c55-fa892f914599)
 
 #### Section #3 - Subscriptions
 >The next page is the Subscriptions. This section is dedicated only to different subscriptions the user has entered. From here users can enter, edit, and delete any unwanted subscriptions (which will also be automatically updated in the transaction history section).
