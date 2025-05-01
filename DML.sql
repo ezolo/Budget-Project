@@ -5,24 +5,6 @@ INSERT INTO users (name, username, email, password) VALUES
 ('John Smith', 'jSmith', 'john@example.com', 'password123'),
 ('Jane Smith', 'jSmith1', 'jane@example.com', 'password321');
 
--- records mock data (for username jSmith)
-INSERT INTO expenses VALUES 
-(27,2,3,11,'2024-04-01',NULL,100.00,'Income','part-time'),
-(28,2,3,8,'2025-04-01',NULL,100.00,'Income','travel fund'),
-(29,2,4,11,'2025-04-01',NULL,1000.00,'Income','Salary'),
-(30,2,4,3,'2025-04-30',NULL,150.00,'Expense','monthly groceries'),
-(31,2,4,6,'2025-04-03',NULL,200.00,'Expense','Education Loan'),
-(32,2,4,5,'2025-04-30',NULL,100.00,'Expense','medicines'),
-(33,2,4,9,'2025-04-30',NULL,150.00,'Expense','Macy\'s'),
-(34,2,2,10,'2025-04-03','April 2025',15.00,'expense','Netflix'),
-(35,2,3,8,'2025-03-01',NULL,100.00,'Income','Travel funds'),
-(39,2,3,8,'2025-02-01',NULL,100.00,'Income','Travel funds'),
-(40,2,4,11,'2025-03-01',NULL,1000.00,'Income','income'),
-(41,2,4,11,'2025-02-01',NULL,1000.00,'Income','income'),
-(42,2,4,3,'2025-02-05',NULL,500.00,'Expense','overal monthly expense'),
-(43,2,4,7,'2025-03-18',NULL,100.00,'Expense','fun day out'),
-(44,2,4,3,'2025-03-11',NULL,50.00,'Expense','grocery');
-
 -- accounts mock data
 INSERT INTO accounts (id, user_id, account_name, balance) VALUES
 ('1', '1', 'savings', '100'),
