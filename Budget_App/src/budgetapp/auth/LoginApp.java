@@ -36,6 +36,13 @@ import java.awt.*;
 //Constructor to set up the login page
   public LoginApp() 
   {
+      // Add a title to the login page
+      JLabel titleLabel = new JLabel("S.O.M.E", SwingConstants.CENTER);
+      titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 28)); // Less bold
+      titleLabel.setForeground(new Color(0, 127, 255));
+      titleLabel.setBounds(0, 20, 350, 40); // Adjusted position
+      add(titleLabel);
+
   	//Setting window properties
       setTitle("Login");
       setSize(350, 400);
@@ -51,17 +58,17 @@ import java.awt.*;
 
         //Initialize and add the username field
         usernameField = new LineTextField("Username");
-      usernameField.setBounds(50, 50, 250, 40);
+      usernameField.setBounds(50, 80, 250, 40);
       add(usernameField);
 
       //Initialize and add the password field
       passwordField = new LinePasswordField("Password");
-      passwordField.setBounds(50, 110, 250, 40);
+      passwordField.setBounds(50, 140, 250, 40);
       add(passwordField);
     
       //Add an eye toggle button to show/hide the password
       JButton eyeToggle = new JButton("👁");
-      eyeToggle.setBounds(285, 112, 40, 40);
+      eyeToggle.setBounds(285, 142, 40, 40);
       eyeToggle.setBackground(Color.WHITE);
       eyeToggle.setOpaque(true);   
       eyeToggle.setFocusable(false);
@@ -96,7 +103,7 @@ import java.awt.*;
 
       //Add a login button
       JButton loginButton = new JButton("Login");
-      loginButton.setBounds(50, 190, 250, 35);
+      loginButton.setBounds(50, 220, 250, 35);
       loginButton.setBackground(new Color(0, 127, 255));
       loginButton.setForeground(Color.WHITE);
       add(loginButton);
@@ -109,18 +116,18 @@ import java.awt.*;
       registerButton.setForeground(Color.BLACK);
       registerButton.setBackground(Color.WHITE);
       registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-      registerButton.setBounds(105, 220, 250, 35);
+      registerButton.setBounds(105, 260, 250, 35);
       add(registerButton);
 
       //Add labels for error messages
       usernameError = new JLabel(" ");
       usernameError.setForeground(Color.RED);
-      usernameError.setBounds(50, 90, 250, 15);
+      usernameError.setBounds(50, 120, 250, 15);
       add(usernameError);
 
       passwordError = new JLabel(" ");
       passwordError.setForeground(Color.RED);
-      passwordError.setBounds(50, 150, 250, 15);
+      passwordError.setBounds(50, 180, 250, 15);
       add(passwordError);
 
       //Add action listeners for login and register buttons
