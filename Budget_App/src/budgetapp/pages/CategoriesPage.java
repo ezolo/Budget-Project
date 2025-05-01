@@ -24,13 +24,14 @@ public class CategoriesPage extends BaseFrame {
     private JPanel titleBarPanel;
     private JPanel footerPanel;
 
+    // Constructor to initialize the CategoriesPage
     public CategoriesPage(int userId) {
         super("categories", userId);
         this.userId = userId;
         initUI();
         setVisible(true);
     }
-
+    // Set layout and background for the content panel
     @Override
     protected void initUI() {
         contentPanel.setLayout(new BorderLayout());
@@ -41,6 +42,7 @@ public class CategoriesPage extends BaseFrame {
         loadCategories();
     }
 
+    // Initialize the title bar with a label
     private void initTitleBar() {
         titleBarPanel = new JPanel(new BorderLayout());
         titleBarPanel.setBackground(new Color(0, 150, 0));

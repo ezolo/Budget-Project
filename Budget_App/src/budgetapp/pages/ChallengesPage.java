@@ -482,7 +482,7 @@ public class ChallengesPage extends BaseFrame {
     private boolean checkNoSpendDay() {
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT DISTINCT DATE(expense_date) AS expense_date " +
-                    "FROM expenses WHERE user_id = ? " +
+                    "FROM expenses WHERE user_id = ? AND expense_date >= CURDATE() - INTERVAL 1 DAY " +
                     "ORDER BY expense_date ASC";
 
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
