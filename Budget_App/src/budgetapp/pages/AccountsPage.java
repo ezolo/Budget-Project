@@ -45,12 +45,12 @@ public class AccountsPage extends BaseFrame {
 
         // Load accounts and add cards
         try (Connection conn = DatabaseConnection.getConnection()) {
-            List<String> accounts = loadAccountsList(conn, userId);
-            for (String account : accounts) {
-                String[] accountDetails = account.replace("[", "").replace("]", "").split(", ");
-                String accountName = accountDetails[0];
-                String balance = accountDetails[1];
-                accountsPanel.add(createAccountCard(accountName, balance));
+            List<String[]> accounts = loadAccountsList(conn, userId);
+            for (String[] account : accounts) {
+                String accountName = account[0];
+                String balance = account[1];
+                String totalExpenses = account[2];
+                accountsPanel.add(createAccountCard(accountName, balance, totalExpenses));
                 accountsPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add spacing between cards
             }
         } catch (SQLException e) {
@@ -83,6 +83,7 @@ public class AccountsPage extends BaseFrame {
         footerPanel.add(deleteButton);
         contentPanel.add(footerPanel, BorderLayout.SOUTH);
     }
+
     private void styleButton(JButton button, Color backgroundColor) {
         button.setFont(new Font("SansSerif", Font.BOLD, 14));
         button.setBackground(backgroundColor);
@@ -91,6 +92,7 @@ public class AccountsPage extends BaseFrame {
         button.setBorder(BorderFactory.createEmptyBorder(8, 25, 8, 25));
         button.setPreferredSize(new Dimension(150, 40)); // Set uniform size
     }
+
     private JButton createAddButton() {
         JButton button = new JButton("+ Add Account");
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -112,9 +114,10 @@ public class AccountsPage extends BaseFrame {
 
         return button;
     }
-    private JButton createEditButton(){
-    // Edit button
-    JButton editButton = new JButton("Edit");
+
+    private JButton createEditButton() {
+        // Edit button
+        JButton editButton = new JButton("Edit");
 
         editButton.setFont(new Font("SansSerif", Font.BOLD, 14));
         editButton.setBackground(new Color(70, 130, 180));
@@ -122,15 +125,16 @@ public class AccountsPage extends BaseFrame {
         editButton.setFocusPainted(false);
         editButton.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
 
-    //card.add(editButton);
+        //card.add(editButton);
         editButton.addActionListener(e -> {
-        new EditAccountPage(userId, () -> {
-            dispose();
-            new AccountsPage(userId);
-        }).setVisible(true);
-    });
+            new EditAccountPage(userId, () -> {
+                dispose();
+                new AccountsPage(userId);
+            }).setVisible(true);
+        });
         return editButton;
     }
+
     private JButton createDeleteButton() {
         JButton deleteButton = new JButton("Delete Account");
         deleteButton.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -191,56 +195,53 @@ public class AccountsPage extends BaseFrame {
 
         return deleteButton;
     }
-    private JPanel createAccountCard(String accountName,String balance) {
+
+    private JPanel createAccountCard(String accountName, String balance, String totalExpenses) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(new Color(242, 243, 247));
-        card.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15)); // Add padding
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80)); // Full width
+        card.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
 
         // Left panel for account details
         JPanel detailsPanel = new JPanel();
         detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
         detailsPanel.setBackground(new Color(242, 243, 247));
 
-        JLabel nameLabel = new JLabel("AccountName: " + accountName);
+        JLabel nameLabel = new JLabel("Account Name: " + accountName);
         nameLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
         nameLabel.setForeground(new Color(80, 80, 80));
 
         JLabel balanceLabel = new JLabel("Balance: $" + balance);
         balanceLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
         balanceLabel.setForeground(new Color(80, 80, 80));
+
+        JLabel expensesLabel = new JLabel("Total Expenses: $" + totalExpenses);
+        expensesLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        expensesLabel.setForeground(new Color(255, 69, 58));
+
         detailsPanel.add(nameLabel);
         detailsPanel.add(balanceLabel);
+        detailsPanel.add(expensesLabel);
         card.add(detailsPanel, BorderLayout.CENTER);
 
-  /*      // Buttons panel
-        JPanel buttonsPanel = new JPanel();
-        buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
-        buttonsPanel.setBackground(new Color(242, 243, 247));
-
-        // Edit button
-        JButton editButton = createEditButton();
-        buttonsPanel.add(editButton);
-
-        // Delete button
-        JButton deleteButton = createDeleteButton(accountName);
-        buttonsPanel.add(deleteButton);
-
-        card.add(buttonsPanel, BorderLayout.EAST);
-        */
         return card;
     }
 
-    private List<String> loadAccountsList(Connection conn, int userId) throws SQLException {
-        List<String> accounts = new ArrayList<>();
-        String sql = "SELECT account_name, balance FROM accounts WHERE user_id = ?";
+    private List<String[]> loadAccountsList(Connection conn, int userId) throws SQLException {
+        List<String[]> accounts = new ArrayList<>();
+        String sql = "SELECT a.account_name, " +
+                "(SELECT COALESCE(SUM(e.amount), 0) FROM expenses e WHERE e.account_id = a.id AND e.type = 'income') - " +
+                "(SELECT COALESCE(SUM(e.amount), 0) FROM expenses e WHERE e.account_id = a.id AND e.type = 'expense') AS balance, " +
+                "(SELECT COALESCE(SUM(e.amount), 0) FROM expenses e WHERE e.account_id = a.id AND e.type = 'expense') AS total_expenses " +
+                "FROM accounts a WHERE a.user_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                String name = rs.getString("account_name");
-                String balance = String.format("%.2f", rs.getDouble("balance"));
-                accounts.add(Arrays.toString(new String[]{name, balance}));
+                String accountName = rs.getString("account_name");
+                double balance = rs.getDouble("balance");
+                double totalExpenses = rs.getDouble("total_expenses");
+                accounts.add(new String[]{accountName, String.format("%.2f", balance), String.format("%.2f", totalExpenses)});
             }
         }
         return accounts;
