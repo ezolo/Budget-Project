@@ -6,7 +6,7 @@ INSERT INTO users (name, username, email, password) VALUES
 ('Jane Smith', 'jSmith1', 'jane@example.com', 'password321');
 
 -- records mock data (for username jSmith)
-NSERT INTO expenses VALUES 
+INSERT INTO expenses VALUES 
 (27,2,3,11,'2024-04-01',NULL,100.00,'Income','part-time'),
 (28,2,3,8,'2025-04-01',NULL,100.00,'Income','travel fund'),
 (29,2,4,11,'2025-04-01',NULL,1000.00,'Income','Salary'),
