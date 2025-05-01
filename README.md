@@ -1,59 +1,88 @@
 # Budget Management Application
 
-###### tags: `Java` `Eclipse` `VS 4.34`
+###### tags: `Java` `InteliJ` `MySQL`
 
 ## 📝 What is the Budget Management Application?
 > The following project is a Budget Management Application. This application will allow users to create a monthly budget, manage their expenses, and track their progress.
 > Besides these three key features, the application also offers users money saving challenges/games and a feature to remove unwanted subscriptions to save further money. 
 
 ## 👩‍🏫 Application Walk Through
-> 🚧Project in Development🚧
+### 1️⃣ Budget Management Application Model ###
+> Before we began our project, we did some research and designed an application model of how we would want our application to look like once done. As you can see from the screen capture of the model provided below, we decide to make an application with the following 8 distinct sections: login/registration, transactions/records, subscriptions, analysis, budget plan, categories, categories, and challenges/games.
+> 
+>![](https://github.com/user-attachments/assets/dfcb2c65-09f4-4715-8892-aca617935690)
+>![](https://github.com/user-attachments/assets/0b1e5a7a-64a3-407c-b11b-a8de0304ac68)
+>
+> 
+### 2️⃣ Budget Management Application Database ###
+> For our project, we used MySQL to store user records. This is how the database looked like at the end.
+> 
+>![](https://github.com/user-attachments/assets/9fd862b2-9bf4-4cb0-8d83-cdfa92245f1b)
+>
+> 
+### 3️⃣ Budget Management File Structure ###
+> We used InteliJ IDEA to make our project but any other IDE would work fine too.
+> We organized our project into folders so that it would be easier to find each others work. The folder structure is: auth (for loginapp authorization), connection (to connect to our database), controller (for menu at the bottom of page to navigate user through program), components (gui components for loginapp), and lastly pages (where most of the pages we designed for application are located).
+> 
+>![](https://github.com/user-attachments/assets/e31eaea0-a95f-404b-bf2a-abc2ca0516c0)
+>
+> 
+### 4️⃣ S.O.M.E Budget Management Application Demo ###
+>
+#### Section #1 - Login/Registration Page 
+>When you first launch the application, you will be prompted to login. If you have a login, great: you can login right away! However, if you're a new user, you can click on the "Create an Account" button which will redirect you to the registration page. Here you will be asked to fill out your full name, username, email, and passcode. If you enter one of the field (for example email field) incorrectly, the page will error asking you to enter correct email address (especially when missing @ sign). Once you create an account and/or if you already have an account you can login! Please note, if you enter your password or username incorrectly the program will error until you input correct credentials. Another feature we added was the eye icon on the side of the password which would allow the user to verify the password they entered before attempting to login.
+>
+<tr>
+    <td><img src="https://github.com/user-attachments/assets/85781922-f059-4dc8-9959-56dc4e0b6943"/></td>
+    <td><img src="https://github.com/user-attachments/assets/b73046ad-fd85-4df1-af59-026e18c47c57" width="490" height="578"/></td>
+</tr>
+<tr>
+    <td><img src="https://github.com/user-attachments/assets/137be4fa-6f5c-4131-9064-680311f00c54"/></td>
+    <td><img src="https://github.com/user-attachments/assets/4184a196-256b-4acf-ad89-23f36c94ec91"/></td>
+</tr>
+<tr>
+    <td><img src="https://github.com/user-attachments/assets/57e21e82-844f-445f-9610-6911485708b6"/></td>
+    <td><img src="https://github.com/user-attachments/assets/4a6890e2-b2ff-4b4c-b249-9ee8aeb3e33a"/></td>
+</tr>
 
-## 🛠️ Instructions For Team 
->1.) Bitbucket<br>
->&nbsp;&nbsp;&nbsp; 1.1) Accept Inivitation to work on project<br>
->&nbsp;&nbsp;&nbsp; 1.2.) Change branch to "Main", write your own name for branch and create your own branch<br>
->2.) Setting up GitHub Desktop <br>
->&nbsp;&nbsp;&nbsp; 2.1.) Install GitHub Desktop: Download and install GitHub Desktop from the official GitHub website. https://desktop.github.com/download/<br>
->&nbsp;&nbsp;&nbsp; 2.2.) Sign in: Sign in to GitHub Desktop with your GitHub account. <br>
->&nbsp;&nbsp;&nbsp; 2.3.) Clone a Repository:<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2.3a.) Navigate to the GitHub repository you want to work with. https://github.com/ezolo/Budget-Project<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2.3b.) Click "Code" and then "Open with GitHub Desktop".<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2.3c.) Choose a local directory to clone the repository to.<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2.3d.) Click "Clone repository".<br>
-> 3.)  Importing the Repository into Eclipse <br>
->&nbsp;&nbsp;&nbsp; 3.1.) Open Eclipse: Launch Eclipse IDE.<br>
->&nbsp;&nbsp;&nbsp; 3.2.) Import Projects:<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3.2a.) Go to "File" > "Import".<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3.2b.) Expand "Git" and select "Projects from Git".<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3.2c.) Click "Next".<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3.2d.) Choose "Existing local repository".<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3.2e.) Follow the prompts to provide the necessary repository information (e.g., URI, local destination, branch).<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3.2f.) Select Projects: Select the desired project(s) and click "Finish".<br>
->4.) Working with Eclipse and GitHub Desktop <br>
->&nbsp;&nbsp;&nbsp; 4.1) Make Sure to grab JDBC Connector Jar for MySQL found here: https://dev.mysql.com/downloads/connector/j/<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  4.1a.) Click "Platform Independent" and download zip. To add jar to project, follow steps from class JDBC slides<br>
->&nbsp;&nbsp;&nbsp; 4.2.) When you make some changes, make sure are on your branch that you created (should be title of project). If not switch to your branch. Do not push changes to "Main", we will be doing that together to avoid merge conflict. <br>
->&nbsp;&nbsp;&nbsp; 4.3.) Once you make some changes in your branch, you will commit changes<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.3a.) In Eclipse, right-click the project (where you made changes) and select "Team" > "Commit".<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.3b.) Add a commit message (what changes you made) and click "Commit".<br>
->&nbsp;&nbsp;&nbsp; 4.4.) Once you commit changes to your branch, you will need to push your changes to repo.<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.4a.) In GitHub Desktop, click "Push" to push the changes to the remote repository.<br>
->>&nbsp;&nbsp;&nbsp; 4.5.) Before making any new changes, it's recommended for you to Pull new changes from repo<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5a.) In GitHub Desktop, click "Fetch" to get the latest changes from the remote repository.<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5b.) Click "Pull" to merge the changes into your local repository<br>
->&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4.5c.) After pulling changes from GitHub Desktop, refresh your Eclipse project to see the updates. <br>
->5.) Setting up MySQL on your end<br>
-> &nbsp;&nbsp;&nbsp;2.1) Download MySQL Workbench from: https://dev.mysql.com/downloads/workbench/<br>
-> &nbsp;&nbsp;&nbsp;2.2) When download finished, enter MySQL Workbench and if there is no connections available, create new "local host" connection. There are many tutorials online how to do this, you can use this youtube video as example: https://www.youtube.com/watch?v=QOQ2XV2n-pk<br>
-> &nbsp;&nbsp;&nbsp;2.3.) Once new connection created, open new query tabe: File --> New Query Tab and run the DDL and DML files. DDL creates schema and tables, DML creates mock data<br>
-> &nbsp;&nbsp;&nbsp;2.4.) Once you run queries, refresh budget_management database: right click on budget_management schema and select "refresh all". <br>
-> &nbsp;&nbsp;&nbsp;2.5) Confirm that 6 tables have been created<br>
-> &nbsp;&nbsp;&nbsp;2.6) Confirm that there is mock data in users table by running: select * from users; There should be 3 records<br>
 
-> **Side Notes**<br>
-> Remember to Pull new changes before making any new changes of your own.
-> We will work together to merge changes to main branch and solve any merge conflicts together.
+#### Section #2 - Transaction History
+>When you login to app successfully, you are welcomed by the transaction history page. In this section, users can enter all of their expenses and income they had over the past few months/years. Once this information is entered, users can organize their records by filtering by each expense category to see which expense they spend most on. 
+>![](https://github.com/user-attachments/assets/e23c4c4c-a721-4cfd-af2b-c9f1289f5588)
+>![](https://github.com/user-attachments/assets/7e07fb12-ba9e-4ba9-8c55-fa892f914599)
+
+#### Section #3 - Subscriptions
+>The next page is the Subscriptions. This section is dedicated only to different subscriptions the user has entered. From here users can enter, edit, and delete any unwanted subscriptions (which will also be automatically updated in the transaction history section).
+>![](https://github.com/user-attachments/assets/8cf6ba42-dc06-4719-8b93-d798c1e661ec)
+
+#### Section #4 - Analysis
+>After Subscriptions page, we have the Analysis page. In the Analysis section, users will see a visual representation of their expenses and the budget they set. From here, users will see which expenses they spend the most money on and how their spending habits compare to their budget.
+>![](https://github.com/user-attachments/assets/a9529a5e-a7bf-4d8a-8611-e5dca39d4fc3)
+
+#### Section #5 - Budget
+>The next page is Budget Plan. Here users will be prompted to enter their monthly income (after taxes) and then their budget which would be split between needs, wants, and savings. Once this information is entered, the user can click on the blue calculate budget button at the bottom to see what their budget would look like. If they are confident that this is budget they want, they can click on the green save budget button for it to be saved. Users can then sort by all the budgets they have made from the past.
+>![](https://github.com/user-attachments/assets/c43071bc-216e-4794-b2cf-12c94ab1d8ab)
+>![](https://github.com/user-attachments/assets/0b0954c5-069c-4f9d-9701-a3d00d8cd2c7)
+
+#### Section #6 - Accounts Information
+>After Budget Page, we have Accounts page. Here users will be asked to enter all of their financial accounts. Financial accounts will then have their amounts populated through the transaction history by the user. If the user chooses to edit their financial accounts page or delete it, they can do so from the accounts information page. For deletion of page to occur however, user will need to have no money in their account, otherwise if they do have money, account will error and not delete. 
+>![](https://github.com/user-attachments/assets/6e293e89-2db3-4161-80a9-f9ce9b3765e2)
+>![](https://github.com/user-attachments/assets/4bca6270-45b5-4e30-a481-31f0128b1876)
+>![](https://github.com/user-attachments/assets/63991f64-ad33-416b-8d4d-56fb53eb5090)
+
+#### Section #7 - Categories Information
+>The next page is Categories pafe. Here users will be able to view and enter any further expenses they may have. Whether that be donations, hobbies, or petcare this section allows user to enter a new expense category which they would be able to use later in transaction page. If you hover over the image in the categories information page, a description of the category expense should appear. 
+>![](https://github.com/user-attachments/assets/37f4adb9-676d-4d6b-ba10-035f4ac78be4)
+>![](https://github.com/user-attachments/assets/0569455c-eb29-4f2c-9851-6b2a4642df53)
+>![](https://github.com/user-attachments/assets/533685bb-dbbf-466c-b359-add1278a811d)
+
+#### Section #8 - Challenges/Badges
+>Laslty, we have the Challenges page. In this section, users will have a chance to play a mini game that promotes healthy financial milestones, in particular about spending less money. The current challenge we have is the "No Spend Day" which as name suggests, asks user not to spend money for one day (or more). Once the user clicks to start challenge, they will need to enter records with at least a 1 day gap in the transaction page. Once this is done, users can go back to the page to claime their badge which will appear in the form of a pop up (with music). 
+>![](https://github.com/user-attachments/assets/f59dc32b-cdd6-466b-acf8-0cc3a28de99c)
+>![](https://github.com/user-attachments/assets/2e2fba1a-f4aa-48d3-85fe-21e18727d50d)
+>![](https://github.com/user-attachments/assets/582049a3-2769-4a92-9b64-9592ae28bd79)
+>![](https://github.com/user-attachments/assets/aa321d92-b801-468e-b849-c417e70783a6)
+>![](https://github.com/user-attachments/assets/4e907882-9950-4c14-add5-8b9221c7b043)
 
 ## 😃 Thank you for viewing our application ##
 > I hope you enjoyed the little walk through of the Budget Management Application. If you have any questions and/or concerns let me know! Don't forget to leave a star⭐️.
