@@ -29,7 +29,7 @@
 > 
 ### 4️⃣ S.O.M.E Budget Management Application Demo ###
 >
-#### Section #1 - Login/Registration Page ####
+#### Section #1 - Login/Registration Page 
 >When you first launch the application, you will be prompted to login. If you have a login, great: you can login right away! However, if you're a new user, you can click on the "Create an Account" button which will redirect you to the registration page. Here you will be asked to fill out your full name, username, email, and passcode. If you enter one of the field (for example email field) incorrectly, the page will error asking you to enter correct email address (especially when missing @ sign). Once you create an account and/or if you already have an account you can login! Please note, if you enter your password or username incorrectly the program will error until you input correct credentials. Another feature we added was the eye icon on the side of the password which would allow the user to verify the password they entered before attempting to login.
 >
 <tr>
