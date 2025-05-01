@@ -34,7 +34,7 @@
 >
 <tr>
     <td><img src="https://github.com/user-attachments/assets/85781922-f059-4dc8-9959-56dc4e0b6943"/></td>
-    <td><img src="https://github.com/user-attachments/assets/b73046ad-fd85-4df1-af59-026e18c47c57" width="550" height="700"/></td>
+    <td><img src="https://github.com/user-attachments/assets/b73046ad-fd85-4df1-af59-026e18c47c57" width="550" height="600"/></td>
 </tr>
 
 
