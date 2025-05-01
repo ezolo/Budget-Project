@@ -1,30 +1,31 @@
 package budgetapp.pages;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.GridLayout;
-import javax.swing.JPanel;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.entity.CategoryItemEntity;
-import org.jfree.chart.entity.PieSectionEntity;
+import budgetapp.connection.DatabaseConnection;
+import org.jfree.chart.*;
+import org.jfree.chart.entity.*;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
-import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.plot.*;
 import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 
+import javax.swing.*;
+import java.awt.*;
+import java.sql.*;
+import java.time.Month;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class AnalysisPage extends BaseFrame {
 
+    private final int userId;
     private Comparable<?> lastExplodedKey = null;
     private int hoveredBarRow = -1, hoveredBarColumn = -1;
 
     public AnalysisPage(int userId) {
-        super("analysis", userId);
+        super("Analysis", userId);
+        this.userId = userId;
         initUI();
     }
 
@@ -36,9 +37,11 @@ public class AnalysisPage extends BaseFrame {
         addPieChartInteractivity(pieChartPanel);
         contentPanel.add(pieChartPanel);
 
-        ChartPanel barChartPanel = new ChartPanel(createBarChart());
+        JPanel barChartContainer = new JPanel(new BorderLayout());
+        ChartPanel barChartPanel = new ChartPanel(createBarChart()); // Removed argument
         addBarChartInteractivity(barChartPanel);
-        contentPanel.add(barChartPanel);
+        barChartContainer.add(barChartPanel, BorderLayout.CENTER);
+        contentPanel.add(barChartContainer);
 
         ChartPanel budgetVsExpensePanel = new ChartPanel(createBudgetVsExpenseChart());
         contentPanel.add(budgetVsExpensePanel);
@@ -46,94 +49,109 @@ public class AnalysisPage extends BaseFrame {
 
     private JFreeChart createPieChart() {
         DefaultPieDataset dataset = new DefaultPieDataset();
-        dataset.setValue("Housing", 40);
-        dataset.setValue("Groceries", 20);
-        dataset.setValue("Transportation", 15);
-        dataset.setValue("Entertainment", 10);
-        dataset.setValue("Savings", 15);
+        String sql = "SELECT c.name AS category, SUM(e.amount) AS total " +
+                "FROM expenses e " +
+                "JOIN categories c ON e.category_id = c.id " +
+                "WHERE e.user_id = ? AND e.type = 'expense' " +
+                "GROUP BY c.name";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                dataset.setValue(rs.getString("category"), rs.getDouble("total"));
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading pie chart data: " + e.getMessage());
+        }
 
         JFreeChart chart = ChartFactory.createPieChart(
                 "Expense Distribution", dataset, true, true, false);
         PiePlot plot = (PiePlot) chart.getPlot();
-        plot.setSectionPaint("Housing", new Color(255, 102, 102));
-        plot.setSectionPaint("Groceries", new Color(102, 178, 255));
-        plot.setSectionPaint("Transportation", new Color(102, 255, 178));
-        plot.setSectionPaint("Entertainment", new Color(255, 178, 102));
-        plot.setSectionPaint("Savings", new Color(178, 102, 255));
         plot.setLabelFont(new Font("SansSerif", Font.BOLD, 18));
-        // Display category text and percentage on the pie chart
         plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{0}: {2}"));
-        plot.setLabelPaint(Color.WHITE);
-        plot.setLabelBackgroundPaint(Color.BLACK);
-        plot.setLabelOutlinePaint(Color.DARK_GRAY);
         return chart;
     }
 
     private JFreeChart createBarChart() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        dataset.addValue(40, "Expense", "Housing");
-        dataset.addValue(20, "Expense", "Groceries");
-        dataset.addValue(15, "Expense", "Transportation");
-        dataset.addValue(10, "Expense", "Entertainment");
-        dataset.addValue(15, "Expense", "Savings");
+        String sql = "SELECT c.name AS category, SUM(e.amount) AS total " +
+                "FROM expenses e " +
+                "JOIN categories c ON e.category_id = c.id " +
+                "WHERE e.user_id = ? " +
+                "GROUP BY c.name";
 
-        JFreeChart chart = ChartFactory.createBarChart("Expenses Breakdown", "Category", "Percentage", dataset);
-        CategoryPlot plot = (CategoryPlot) chart.getPlot();
-        plot.setRenderer(new BarRenderer() {
-            @Override
-            public Color getItemPaint(int row, int column) {
-                Color baseColor = getColorForCategory(dataset.getColumnKey(column));
-                return (row == hoveredBarRow && column == hoveredBarColumn) ? baseColor.brighter() : baseColor;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                dataset.addValue(rs.getDouble("total"), "Amount", rs.getString("category"));
             }
-        });
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading bar chart data: " + e.getMessage());
+        }
+
+        JFreeChart chart = ChartFactory.createBarChart(
+                "Category Breakdown", // Chart title
+                "Category",           // X-axis label
+                "Amount",             // Y-axis label
+                dataset,              // Dataset
+                PlotOrientation.VERTICAL, // Orientation
+                true,                 // Include legend
+                true,                 // Tooltips
+                false                 // URLs
+        );
+
+        CategoryPlot plot = (CategoryPlot) chart.getPlot();
+        BarRenderer renderer = new BarRenderer() {
+            private final Paint[] colors = new Paint[] {
+                    Color.BLUE, Color.GREEN, Color.ORANGE, Color.RED, Color.MAGENTA, Color.CYAN
+            };
+
+            @Override
+            public Paint getItemPaint(int row, int column) {
+                return colors[column % colors.length];
+            }
+        };
+        plot.setRenderer(renderer);
+
         return chart;
     }
 
     private JFreeChart createBudgetVsExpenseChart() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        dataset.addValue(1000, "Budget", "January");
-        dataset.addValue(800, "Expense", "January");
-        dataset.addValue(1200, "Budget", "February");
-        dataset.addValue(900, "Expense", "February");
-        dataset.addValue(1100, "Budget", "March");
-        dataset.addValue(950, "Expense", "March");
-        dataset.addValue(1300, "Budget", "April");
-        dataset.addValue(1100, "Expense", "April");
-        dataset.addValue(1400, "Budget", "May");
-        dataset.addValue(1200, "Expense", "May");
-        dataset.addValue(1500, "Budget", "June");
-        dataset.addValue(1350, "Expense", "June");
+        String sql = "SELECT MONTH(e.expense_date) AS month, " +
+                "COALESCE(SUM(CASE WHEN e.type = 'income' THEN e.amount END), 0) AS total_income, " +
+                "COALESCE(SUM(CASE WHEN e.type = 'expense' THEN e.amount END), 0) AS total_expense " +
+                "FROM expenses e " +
+                "WHERE e.user_id = ? " +
+                "GROUP BY MONTH(e.expense_date)";
 
-        JFreeChart chart = ChartFactory.createLineChart("Budget vs Expense by Month", "Month", "Amount", dataset);
-        CategoryPlot plot = (CategoryPlot) chart.getPlot();
-        plot.getRenderer().setSeriesPaint(0, new Color(102, 178, 255));
-        plot.getRenderer().setSeriesPaint(1, new Color(255, 102, 102));
-        return chart;
-    }
-
-    private Color getColorForCategory(Comparable<?> category) {
-        String cat = category.toString();
-        switch (cat) {
-            case "Housing":
-                return new Color(255, 102, 102);
-            case "Groceries":
-                return new Color(102, 178, 255);
-            case "Transportation":
-                return new Color(102, 255, 178);
-            case "Entertainment":
-                return new Color(255, 178, 102);
-            case "Savings":
-                return new Color(178, 102, 255);
-            default:
-                return Color.gray;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                String month = Month.of(rs.getInt("month")).name();
+                dataset.addValue(rs.getDouble("total_income"), "Income", month);
+                dataset.addValue(rs.getDouble("total_expense"), "Expense", month);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error loading budget vs expense data: " + e.getMessage());
         }
+
+        return ChartFactory.createLineChart(
+                "Budget vs Expense by Month", "Month", "Amount", dataset);
     }
 
     private void addPieChartInteractivity(ChartPanel pieChartPanel) {
         PiePlot plot = (PiePlot) pieChartPanel.getChart().getPlot();
         pieChartPanel.addChartMouseListener(new ChartMouseListener() {
             @Override
-            public void chartMouseClicked(ChartMouseEvent event) { }
+            public void chartMouseClicked(ChartMouseEvent event) {}
+
             @Override
             public void chartMouseMoved(ChartMouseEvent event) {
                 for (Object key : plot.getDataset().getKeys()) {
@@ -155,7 +173,8 @@ public class AnalysisPage extends BaseFrame {
     private void addBarChartInteractivity(ChartPanel barChartPanel) {
         barChartPanel.addChartMouseListener(new ChartMouseListener() {
             @Override
-            public void chartMouseClicked(ChartMouseEvent event) { }
+            public void chartMouseClicked(ChartMouseEvent event) {}
+
             @Override
             public void chartMouseMoved(ChartMouseEvent event) {
                 hoveredBarRow = -1;
