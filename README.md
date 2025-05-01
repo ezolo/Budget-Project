@@ -46,8 +46,43 @@
 </tr>
 
 
+#### Section #2 - Transaction History
+>When you login to app successfully, you are welcomed by the transaction history page. In this section, users can enter all of their expenses and income they had over the past few months/years. Once this information is entered, users can organize their records by filtering by each expense category to see which expense they spend most on. 
+>![](https://github.com/user-attachments/assets/e23c4c4c-a721-4cfd-af2b-c9f1289f5588)
+>![](https://github.com/user-attachments/assets/74baff31-ab45-464e-80d2-226d6890c840)
 
- 
+#### Section #3 - Subscriptions
+>The next page is the Subscriptions. This section is dedicated only to different subscriptions the user has entered. From here users can enter, edit, and delete any unwanted subscriptions (which will also be automatically updated in the transaction history section).
+>![](https://github.com/user-attachments/assets/8cf6ba42-dc06-4719-8b93-d798c1e661ec)
+
+#### Section #4 - Analysis
+>After Subscriptions page, we have the Analysis page. In the Analysis section, users will see a visual representation of their expenses and the budget they set. From here, users will see which expenses they spend the most money on and how their spending habits compare to their budget.
+>![](https://github.com/user-attachments/assets/a9529a5e-a7bf-4d8a-8611-e5dca39d4fc3)
+
+#### Section #5 - Budget
+>The next page is Budget Plan. Here users will be prompted to enter their monthly income (after taxes) and then their budget which would be split between needs, wants, and savings. Once this information is entered, the user can click on the blue calculate budget button at the bottom to see what their budget would look like. If they are confident that this is budget they want, they can click on the green save budget button for it to be saved. Users can then sort by all the budgets they have made from the past.
+>![](https://github.com/user-attachments/assets/c43071bc-216e-4794-b2cf-12c94ab1d8ab)
+>![](https://github.com/user-attachments/assets/0b0954c5-069c-4f9d-9701-a3d00d8cd2c7)
+
+#### Section #6 - Accounts Information
+>After Budget Page, we have Accounts page. Here users will be asked to enter all of their financial accounts. Financial accounts will then have their amounts populated through the transaction history by the user. If the user chooses to edit their financial accounts page or delete it, they can do so from the accounts information page. For deletion of page to occur however, user will need to have no money in their account, otherwise if they do have money, account will error and not delete. 
+>![](https://github.com/user-attachments/assets/6e293e89-2db3-4161-80a9-f9ce9b3765e2)
+>![](https://github.com/user-attachments/assets/4bca6270-45b5-4e30-a481-31f0128b1876)
+>![](https://github.com/user-attachments/assets/63991f64-ad33-416b-8d4d-56fb53eb5090)
+
+#### Section #7 - Categories Information
+>The next page is Categories pafe. Here users will be able to view and enter any further expenses they may have. Whether that be donations, hobbies, or petcare this section allows user to enter a new expense category which they would be able to use later in transaction page. If you hover over the image in the categories information page, a description of the category expense should appear. 
+>![](https://github.com/user-attachments/assets/37f4adb9-676d-4d6b-ba10-035f4ac78be4)
+>![](https://github.com/user-attachments/assets/0569455c-eb29-4f2c-9851-6b2a4642df53)
+>![](https://github.com/user-attachments/assets/533685bb-dbbf-466c-b359-add1278a811d)
+
+#### Section #8 - Challenges/Badges
+>Laslty, we have the Challenges page. In this section, users will have a chance to play a mini game that promotes healthy financial milestones, in particular about spending less money. The current challenge we have is the "No Spend Day" which as name suggests, asks user not to spend money for one day (or more). Once the user clicks to start challenge, they will need to enter records with at least a 1 day gap in the transaction page. Once this is done, users can go back to the page to claime their badge which will appear in the form of a pop up (with music). 
+>![](https://github.com/user-attachments/assets/f59dc32b-cdd6-466b-acf8-0cc3a28de99c)
+>![](https://github.com/user-attachments/assets/2e2fba1a-f4aa-48d3-85fe-21e18727d50d)
+>![](https://github.com/user-attachments/assets/582049a3-2769-4a92-9b64-9592ae28bd79)
+>![](https://github.com/user-attachments/assets/aa321d92-b801-468e-b849-c417e70783a6)
+>![](https://github.com/user-attachments/assets/4e907882-9950-4c14-add5-8b9221c7b043)
 
 ## 😃 Thank you for viewing our application ##
 > I hope you enjoyed the little walk through of the Budget Management Application. If you have any questions and/or concerns let me know! Don't forget to leave a star⭐️.
